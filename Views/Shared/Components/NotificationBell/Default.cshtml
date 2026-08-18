@@ -1,0 +1,47 @@
+@model List<HUIOTClinicMS.Models.Notification>
+
+<div class="dropdown clinic-profile-dropdown me-3">
+    <button class="clinic-topbar-avatar clinic-avatar-btn bg-transparent border-0 text-dark d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="position-relative d-inline-flex">
+            <i class="fa-regular fa-bell" style="font-size: 1.4rem;"></i>
+            @if (Model.Count > 0)
+            {
+                <span class="position-absolute badge rounded-pill bg-danger d-flex align-items-center justify-content-center" style="top: -4px; right: -6px; font-size: 0.7rem; padding: 0; width: 18px; height: 18px;">
+                    @Model.Count
+                    <span class="visually-hidden">unread messages</span>
+                </span>
+            }
+        </div>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 320px; max-height: 400px; overflow-y: auto;">
+        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+            <strong class="mb-0">Notifications</strong>
+            @if (Model.Count > 0)
+            {
+                <form asp-controller="Notifications" asp-action="MarkAllAsRead" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-muted">Mark all as read</button>
+                </form>
+            }
+        </li>
+        @if (Model.Count > 0)
+        {
+            foreach (var notification in Model)
+            {
+                <li>
+                    <a class="dropdown-item py-2 border-bottom text-wrap" href="@(notification.RelatedRecordID.HasValue ? $"/Notifications/ViewRecord/{notification.ID}" : "#")">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong class="small">@notification.Title</strong>
+                            <small class="text-muted" style="font-size: 0.7rem;">@notification.CreatedAt.ToString("MMM dd HH:mm")</small>
+                        </div>
+                        <p class="small text-muted mb-0" style="line-height: 1.2;">@notification.Message</p>
+                    </a>
+                </li>
+            }
+            <li><a class="dropdown-item text-center small text-primary py-2" asp-controller="Notifications" asp-action="Index">View all notifications</a></li>
+        }
+        else
+        {
+            <li class="px-3 py-4 text-center text-muted small">No new notifications</li>
+        }
+    </ul>
+</div>

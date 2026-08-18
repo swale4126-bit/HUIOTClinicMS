@@ -1,0 +1,96 @@
+using HUIOTClinicMS.Data;
+using HUIOTClinicMS.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
+namespace HUIOTClinicMS.Services
+{
+    public interface INotificationService
+    {
+        Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null);
+        Task<List<Notification>> GetUnreadNotificationsAsync(string userId);
+        Task MarkAsReadAsync(int notificationId);
+        Task MarkAllAsReadAsync(string userId);
+    }
+
+    public class NotificationService : INotificationService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public NotificationService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
+        public async Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null)
+        {
+            var notification = new Notification
+            {
+                UserID = userId,
+                Title = title,
+                Message = message,
+                NotificationType = type,
+                RelatedRecordID = relatedId
+            };
+
+            _context.Notifications.Add(notification);
+            
+            // Also notify Health Officers
+            var healthOfficers = await _userManager.GetUsersInRoleAsync("HealthOfficer");
+            foreach (var ho in healthOfficers)
+            {
+                if (ho.Id != userId)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserID = ho.Id,
+                        Title = title,
+                        Message = message,
+                        NotificationType = type,
+                        RelatedRecordID = relatedId
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Notification>> GetUnreadNotificationsAsync(string userId)
+        {
+            return await _context.Notifications
+                .Where(n => n.UserID == userId && !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(10) // Limit to 10 for bell dropdown
+                .ToListAsync();
+        }
+
+        public async Task MarkAsReadAsync(int notificationId)
+        {
+            var notification = await _context.Notifications.FindAsync(notificationId);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task MarkAllAsReadAsync(string userId)
+        {
+            var unread = await _context.Notifications
+                .Where(n => n.UserID == userId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var n in unread)
+            {
+                n.IsRead = true;
+            }
+
+            if (unread.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+}

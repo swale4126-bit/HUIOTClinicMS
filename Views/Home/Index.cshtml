@@ -1,0 +1,128 @@
+﻿@model HUIOTClinicMS.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.TotalPatients</div>
+            <div class="clinic-metric-label">Total Patients</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.MedicalRecordsToday</div>
+            <div class="clinic-metric-label">Medical Records Today</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.PendingLabRequests</div>
+            <div class="clinic-metric-label">Pending Lab Requests</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.ActiveStaff</div>
+            <div class="clinic-metric-label">Active Staff</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="clinic-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Recent Medical Records</strong>
+                <a asp-controller="MedicalRecords" asp-action="Index" class="small text-decoration-none">View All &rsaquo;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr class="text-muted small">
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th>Diagnosis</th>
+                            <th>Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model.RecentMedicalRecords)
+                        {
+                            <tr>
+                                <td>@(record.Patient != null ? $"{record.Patient.FirstName} {record.Patient.LastName}" : "—")</td>
+                                <td class="small text-muted">@record.DateTime.ToString("yyyy-MM-dd")</td>
+                                <td>@(record.Diagnosis ?? "—")</td>
+                                <td class="small">@(record.CreatedBy != null ? $"{record.CreatedBy.FirstName} {record.CreatedBy.LastName}" : "—")</td>
+                            </tr>
+                        }
+                        @if (!Model.RecentMedicalRecords.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted small py-3">No medical records yet.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="clinic-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Recent Lab Requests</strong>
+                <a asp-controller="LabRequests" asp-action="Index" class="small text-decoration-none">View All &rsaquo;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr class="text-muted small">
+                            <th>Patient</th>
+                            <th>Notes</th>
+                            <th>Requested By</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.RecentLabRequests)
+                        {
+                            var badgeClass = request.Status switch
+                            {
+                                "Completed" => "badge-status-completed",
+                                "In Progress" => "badge-status-inprogress",
+                                _ => "badge-status-pending"
+                            };
+                            <tr>
+                                <td>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
+                                <td class="small text-muted">@(request.ClinicalNotes ?? "—")</td>
+                                <td class="small">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
+                                <td class="small text-muted">@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                                <td><span class="badge @badgeClass">@request.Status</span></td>
+                            </tr>
+                        }
+                        @if (!Model.RecentLabRequests.Any())
+                        {
+                            <tr><td colspan="5" class="text-center text-muted small py-3">No lab requests yet.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clinic-card">
+    <strong class="d-block mb-3">Quick Actions</strong>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="Patients" asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-user-plus me-1"></i> Register Patient
+        </a>
+        <a asp-controller="MedicalRecords" asp-action="Create" class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-file-medical me-1"></i> New Medical Record
+        </a>
+        <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-chart-column me-1"></i> View Reports
+        </a>
+    </div>
+</div>

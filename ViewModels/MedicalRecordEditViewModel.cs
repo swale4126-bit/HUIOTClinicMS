@@ -1,0 +1,24 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HUIOTClinicMS.ViewModels
+{
+    public class MedicalRecordEditViewModel
+    {
+        public int ID { get; set; }
+
+        public string PatientDisplayName { get; set; } = string.Empty;
+        public string CreatedByDisplayName { get; set; } = string.Empty;
+        public DateTime DateTime { get; set; }
+
+        [Required]
+        [Display(Name = "Chief Complaint")]
+        public string ChiefComplaint { get; set; } = string.Empty;
+
+        [Display(Name = "General Appearance")]
+        public string? GeneralAppearance { get; set; }
+
+        public string? Diagnosis { get; set; }
+        public string? Treatment { get; set; }
+        public string? Notes { get; set; }
+    }
+}

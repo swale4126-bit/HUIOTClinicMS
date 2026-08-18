@@ -1,0 +1,180 @@
+@model HUIOTClinicMS.ViewModels.QueueDashboardViewModel
+@{
+    ViewData["Title"] = "Queue Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Queue Management</h2>
+    
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label for="spId" class="fw-bold text-nowrap mb-0">Service Point:</label>
+        <select name="spId" id="spId" class="form-select w-auto" onchange="this.form.submit()">
+            @if (User.IsInRole("HealthOfficer"))
+            {
+                if (Model.SelectedServicePointID == 0)
+                {
+                    <option value="0" selected>All Departments</option>
+                }
+                else
+                {
+                    <option value="0">All Departments</option>
+                }
+            }
+            @foreach (var sp in Model.ServicePoints)
+            {
+                if (sp.ID == Model.SelectedServicePointID)
+                {
+                    <option value="@sp.ID" selected>@sp.Name</option>
+                }
+                else
+                {
+                    <option value="@sp.ID">@sp.Name</option>
+                }
+            }
+        </select>
+    </form>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="row mb-4 g-3">
+    <div class="col-md-3">
+        <div class="clinic-card text-center">
+            <h3 class="text-primary mb-1">@Model.WaitingCount</h3>
+            <small class="text-muted fw-bold">WAITING</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card text-center">
+            <h3 class="text-warning mb-1">@Model.CalledCount</h3>
+            <small class="text-muted fw-bold">CALLED</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card text-center">
+            <h3 class="text-info mb-1">@Model.InServiceCount</h3>
+            <small class="text-muted fw-bold">IN SERVICE</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="clinic-card text-center">
+            <h3 class="text-success mb-1">@Model.CompletedCount</h3>
+            <small class="text-muted fw-bold">COMPLETED</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="clinic-card h-100">
+            <h5 class="mb-4">Currently Serving</h5>
+            
+            @if (Model.SelectedServicePointID == 0)
+            {
+                <div class="text-center py-5 border rounded bg-light">
+                    <i class="fa-solid fa-layer-group fa-4x text-muted mb-3 opacity-25"></i>
+                    <h4 class="text-muted mb-4">All Departments View</h4>
+                    <p class="text-muted small">Select a specific service point to manage its queue.</p>
+                </div>
+            }
+            else if (Model.CurrentServingQueue != null)
+            {
+                <div class="text-center py-4 border rounded bg-light mb-4">
+                    <h1 class="display-3 fw-bold text-primary mb-0">@Model.CurrentServingQueue.TokenNumber</h1>
+                    <p class="text-muted mb-0">@Model.CurrentServingQueue.Patient?.FirstName @Model.CurrentServingQueue.Patient?.LastName</p>
+                    <span class="badge bg-warning text-dark mt-2">@Model.CurrentServingQueue.QueueStatus</span>
+                    <span class="badge bg-info mt-2 ms-2">@Model.CurrentServingQueue.QueueType</span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    @if (Model.CurrentServingQueue.QueueStatus == "Called")
+                    {
+                        <form asp-action="StartService" method="post">
+                            <input type="hidden" name="queueId" value="@Model.CurrentServingQueue.ID" />
+                            <input type="hidden" name="servicePointId" value="@Model.SelectedServicePointID" />
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-play me-2"></i>Start Service</button>
+                        </form>
+                    }
+                    
+                    <form asp-action="CompleteService" method="post">
+                        <input type="hidden" name="queueId" value="@Model.CurrentServingQueue.ID" />
+                        <input type="hidden" name="servicePointId" value="@Model.SelectedServicePointID" />
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-2"></i>Complete</button>
+                    </form>
+                    
+                    <form asp-action="CancelService" method="post" onsubmit="return confirm('Are you sure you want to cancel this token?');">
+                        <input type="hidden" name="queueId" value="@Model.CurrentServingQueue.ID" />
+                        <input type="hidden" name="servicePointId" value="@Model.SelectedServicePointID" />
+                        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-xmark me-2"></i>Cancel</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 border rounded bg-light">
+                    <i class="fa-regular fa-id-badge fa-4x text-muted mb-3 opacity-25"></i>
+                    <h4 class="text-muted mb-4">No Active Patient</h4>
+                    
+                    <form asp-action="CallNext" method="post">
+                        <input type="hidden" name="servicePointId" value="@Model.SelectedServicePointID" />
+                        <button type="submit" class="btn btn-primary btn-lg" @(Model.WaitingCount == 0 ? "disabled" : "")>
+                            <i class="fa-solid fa-bullhorn me-2"></i> Call Next Patient
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="clinic-card h-100">
+            <h5 class="mb-4">Waiting List</h5>
+            
+            @if (Model.WaitingQueues.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Token</th>
+                                <th>Type</th>
+                                <th>Patient Name</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var q in Model.WaitingQueues)
+                            {
+                                <tr>
+                                    <td><strong>@q.TokenNumber</strong></td>
+                                    <td><span class="badge bg-secondary">@q.QueueType</span></td>
+                                    <td>@q.Patient?.FirstName @q.Patient?.LastName</td>
+                                    <td class="text-muted small">
+                                        @q.CreatedAt.ToString("hh:mm tt")
+                                        @if (Model.SelectedServicePointID == 0)
+                                        {
+                                            <br /><span class="badge bg-light text-dark border">@q.QueueStatus</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">Queue is empty.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

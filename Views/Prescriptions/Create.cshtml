@@ -1,0 +1,39 @@
+@model HUIOTClinicMS.ViewModels.PrescriptionCreateViewModel
+@{
+    ViewData["Title"] = "New Prescription";
+}
+
+<h2 class="mb-4">New Prescription</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="LabResultID" />
+    <input type="hidden" asp-for="PatientID" />
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-2">Patient</strong>
+        <input class="form-control mb-3" value="@Model.PatientDisplayName" disabled />
+
+        <strong class="d-block mb-2">Lab Result Used</strong>
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Test Type</dt>
+            <dd class="col-sm-9">@Model.TestTypeName</dd>
+            <dt class="col-sm-3">Result</dt>
+            <dd class="col-sm-9">@Model.LabResultSummary</dd>
+        </dl>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-2">Prescription</strong>
+        <textarea asp-for="RX" class="form-control" rows="3" placeholder="e.g. Amoxicillin 500mg TID x 7 days"></textarea>
+        <span asp-validation-for="RX" class="text-danger small"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-prescription-bottle-medical me-1"></i> Create Prescription
+        </button>
+        <a asp-controller="Nurse" asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+    </div>
+</form>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+@using Microsoft.AspNetCore.Identity
+@using HUIOTClinicMS.Data
+@inject UserManager<ApplicationUser> UserManager
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HU IoT Clinic</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        // Init dark mode immediately to prevent flash
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    </script>
+</head>
+<body>
+    <div class="clinic-shell">
+
+        <aside class="clinic-sidebar">
+            <div class="clinic-sidebar-brand">
+                <div class="clinic-sidebar-brand-icon">
+                    <i class="fa-solid fa-heart-pulse text-white"></i>
+                </div>
+                <div class="clinic-sidebar-brand-text">
+                    <strong>HU IoT Clinic</strong>
+                    <small>Hawassa University</small>
+                </div>
+            </div>
+
+            <div class="clinic-sidebar-profile">
+                <div class="clinic-avatar-initials">
+                    @{
+                        ApplicationUser? currentUser = User.Identity?.IsAuthenticated == true
+                            ? await UserManager.GetUserAsync(User)
+                            : null;
+
+                        var displayName = currentUser?.FullName ?? User.Identity?.Name ?? "Guest";
+                        var initials = string.Join("", displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                                        .Take(2)
+                                                        .Select(n => char.ToUpper(n[0])));
+                    }
+                    @initials
+                </div>
+                <div class="clinic-sidebar-profile-text">
+                    <strong>@displayName</strong>
+                    <small>
+                        @if (User.IsInRole("HealthOfficer"))
+                        {
+                            <text>Health Officer</text>
+                        }
+                        else if (User.IsInRole("Nurse"))
+                        {
+
+                            <text>Nurse</text>
+                        }
+                        else if (User.IsInRole("LabTechnician"))
+                        {
+
+                            <text>Lab Technician</text>
+                        }
+                        else if (User.IsInRole("Pharmacist"))
+                        {
+
+                            <text>Pharmacist</text>
+                        }
+                        else if (User.IsInRole("Student"))
+                        {
+
+                            <text>Student</text>
+                        }
+                        else
+                        {
+
+                            <text>Guest</text>
+                        }
+                    </small>
+                </div>
+            </div>
+
+            <nav class="clinic-sidebar-nav">
+                @{
+                    string CurrentAction() => ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                    string CurrentController() => ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+                    string ActiveIf(string controller, string action) =>
+                        (CurrentController() == controller && CurrentAction() == action) ? "active" : "";
+                }
+
+                @if (User.IsInRole("HealthOfficer"))
+                {
+                    <a class="clinic-nav-link @ActiveIf("Home", "Index")" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                    <a class="clinic-nav-link" asp-controller="UserManagement" asp-action="Index"><i class="fa-solid fa-users-gear"></i> User Management</a>
+                    <a class="clinic-nav-link @ActiveIf("Patients", "Index")" asp-controller="Patients" asp-action="Index"><i class="fa-solid fa-id-card"></i> Patient Records</a>
+                    <a class="clinic-nav-link @ActiveIf("MedicalRecords", "Index")" asp-controller="MedicalRecords" asp-action="Index"><i class="fa-solid fa-file-medical"></i> Medical Records</a>
+                    <a class="clinic-nav-link @ActiveIf("LabRequests", "Index")" asp-controller="LabRequests" asp-action="Index"><i class="fa-solid fa-flask"></i> Lab Requests</a>
+                    <a class="clinic-nav-link @ActiveIf("Prescriptions", "Index")" asp-controller="Prescriptions" asp-action="Index"><i class="fa-solid fa-prescription-bottle-medical"></i> Prescriptions</a>
+                    <a class="clinic-nav-link @ActiveIf("Medications", "Index")" asp-controller="Medications" asp-action="Index"><i class="fa-solid fa-pills"></i> Medications</a>
+                    <a class="clinic-nav-link @ActiveIf("Queue", "Index")" asp-controller="Queue" asp-action="Index"><i class="fa-solid fa-list-ol"></i> Queue Management</a>
+                    <a class="clinic-nav-link" asp-controller="Reports" asp-action="Index"><i class="fa-solid fa-chart-column"></i> Reports</a>
+                    <a class="clinic-nav-link" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear"></i> Settings</a>
+                }
+                else if (User.IsInRole("Nurse"))
+                {
+                    <a class="clinic-nav-link @ActiveIf("Nurse", "Index")" asp-controller="Nurse" asp-action="Index"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                    <a class="clinic-nav-link @ActiveIf("Patients", "Create")" asp-controller="Patients" asp-action="Create"><i class="fa-solid fa-user-plus"></i> Register Patient</a>
+                    <a class="clinic-nav-link @ActiveIf("Queue", "Index")" asp-controller="Queue" asp-action="Index" asp-route-queueType="Consultation"><i class="fa-solid fa-people-arrows"></i> Queue / Consultation</a>
+                    <a class="clinic-nav-link @ActiveIf("MedicalRecords", "Index")" asp-controller="MedicalRecords" asp-action="Index"><i class="fa-solid fa-file-medical"></i> Medical Records</a>
+                    <a class="clinic-nav-link @ActiveIf("LabRequests", "Index")" asp-controller="LabRequests" asp-action="Index"><i class="fa-solid fa-flask"></i> Lab Requests</a>
+                    <a class="clinic-nav-link @ActiveIf("Prescriptions", "Index")" asp-controller="Prescriptions" asp-action="Index"><i class="fa-solid fa-prescription-bottle-medical"></i> Prescriptions</a>
+                    <a class="clinic-nav-link @ActiveIf("Settings", "Index")" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear"></i> Settings</a>
+                }
+                else if (User.IsInRole("LabTechnician"))
+                {
+                    <a class="clinic-nav-link @ActiveIf("LabTechnician", "Index")" asp-controller="LabTechnician" asp-action="Index"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                    <a class="clinic-nav-link @ActiveIf("Queue", "Index")" asp-controller="Queue" asp-action="Index" asp-route-queueType="Laboratory"><i class="fa-solid fa-people-arrows"></i> Queue / Laboratory</a>
+                    <a class="clinic-nav-link @ActiveIf("LabRequests", "Index")" asp-controller="LabRequests" asp-action="Index"><i class="fa-solid fa-flask"></i> Lab Requests</a>
+                    <a class="clinic-nav-link @ActiveIf("LabResults", "Index")" asp-controller="LabResults" asp-action="Index"><i class="fa-solid fa-vial-circle-check"></i> Lab Results</a>
+                    <a class="clinic-nav-link @ActiveIf("Settings", "Index")" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear"></i> Settings</a>
+                }
+                else if (User.IsInRole("Pharmacist"))
+                {
+                    <a class="clinic-nav-link @ActiveIf("Pharmacist", "Index")" asp-controller="Pharmacist" asp-action="Index"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                    <a class="clinic-nav-link @ActiveIf("Prescriptions", "Index")" asp-controller="Prescriptions" asp-action="Index"><i class="fa-solid fa-prescription-bottle-medical"></i> Prescriptions</a>
+                    <a class="clinic-nav-link @ActiveIf("Queue", "Index")" asp-controller="Queue" asp-action="Index" asp-route-queueType="Pharmacy"><i class="fa-solid fa-people-arrows"></i> Queue / Pharmacy</a>
+                    <a class="clinic-nav-link @ActiveIf("Medications", "Index")" asp-controller="Medications" asp-action="Index"><i class="fa-solid fa-pills"></i> Medication Registry</a>
+                    <a class="clinic-nav-link @ActiveIf("Settings", "Index")" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear"></i> Settings</a>
+                }
+                else if (User.IsInRole("Student"))
+                {
+                    <a class="clinic-nav-link" asp-controller="Student" asp-action="Dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                    <a class="clinic-nav-link" asp-controller="Student" asp-action="MedicalRecords"><i class="fa-solid fa-file-medical"></i> My Medical Records</a>
+                    <a class="clinic-nav-link" asp-controller="Student" asp-action="LabResults"><i class="fa-solid fa-vial-circle-check"></i> My Lab Results</a>
+                    <a class="clinic-nav-link" asp-controller="Student" asp-action="Prescriptions"><i class="fa-solid fa-prescription-bottle-medical"></i> My Prescriptions</a>
+                    <a class="clinic-nav-link" asp-controller="Student" asp-action="Profile"><i class="fa-solid fa-user"></i> My Profile</a>
+                }
+            </nav>
+
+            <div class="clinic-sidebar-footer">
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })" method="post">
+                    <button type="submit" class="clinic-logout-link">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="clinic-main">
+            <header class="clinic-topbar">
+                <div class="clinic-topbar-title">@ViewData["Title"]</div>
+
+                <div class="clinic-topbar-actions">
+                    @await Component.InvokeAsync("NotificationBell")
+
+                    <div class="dropdown clinic-profile-dropdown">
+                        <button class="clinic-topbar-avatar clinic-avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @if (!string.IsNullOrEmpty(currentUser?.ProfilePhotoUrl))
+                            {
+                                <img src="@currentUser.ProfilePhotoUrl" class="clinic-avatar-img" alt="Profile" />
+                            }
+                            else
+                            {
+                                @initials
+                            }
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end clinic-profile-menu">
+                            <li class="clinic-profile-menu-header px-3 py-2">
+                                <strong class="d-block">@displayName</strong>
+                                <small class="text-muted">
+                                    @if (User.IsInRole("HealthOfficer"))
+                                    {
+                                        <text>Health Officer</text>
+                                    }
+                                    else if (User.IsInRole("Nurse"))
+                                    {
+                                        <text>Nurse</text>
+                                    }
+                                    else if (User.IsInRole("LabTechnician"))
+                                    {
+                                        <text>Lab Technician</text>
+                                    }
+                                    else if (User.IsInRole("Pharmacist"))
+                                    {
+                                        <text>Pharmacist</text>
+                                    }
+                                    else if (User.IsInRole("Student"))
+                                    {
+                                        <text>Student</text>
+                                    }
+                                </small>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fa-solid fa-user me-2"></i>Your Profile</a></li>
+                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Edit"><i class="fa-solid fa-pen me-2"></i>Edit Profile</a></li>
+                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="UploadPhoto"><i class="fa-solid fa-camera me-2"></i>Upload Photo</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })" method="post">
+                                    <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main class="clinic-content" style="min-height: calc(100vh - 140px);">
+                @RenderBody()
+            </main>
+
+            <!-- Professional Footer -->
+            <footer class="bg-white border-top py-3 mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <div class="text-muted">
+                            &copy; @DateTime.Now.Year - HU IoT Student Clinic Management System
+                        </div>
+                        <div>
+                            <span class="text-muted">Developed by</span> <a href="#" class="text-decoration-none fw-bold">Hawassa University IoT</a>
+                            <span class="mx-1">&middot;</span>
+                            <a href="#" class="text-decoration-none text-muted">Privacy Policy</a>
+                            <span class="mx-1">&middot;</span>
+                            <a href="#" class="text-decoration-none text-muted">Terms of Service</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('darkModeToggle');
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            
+            if (toggle) {
+                toggle.checked = currentTheme === 'dark';
+                toggle.addEventListener('change', function() {
+                    const newTheme = this.checked ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-bs-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                });
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,30 @@
+@model HUIOTClinicMS.Models.MedicalRecord
+@{
+    ViewData["Title"] = "Delete Medical Record";
+}
+
+<h2 class="mb-4">Delete Medical Record</h2>
+
+<div class="clinic-card mb-3">
+    <p class="text-danger fw-semibold">Are you sure you want to delete this medical record? This cannot be undone.</p>
+
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Patient</dt>
+        <dd class="col-sm-9">@(Model.Patient != null ? $"{Model.Patient.FirstName} {Model.Patient.LastName}" : "—")</dd>
+
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@Model.DateTime.ToString("yyyy-MM-dd HH:mm")</dd>
+
+        <dt class="col-sm-3">Chief Complaint</dt>
+        <dd class="col-sm-9">@(Model.ChiefComplaint ?? "—")</dd>
+
+        <dt class="col-sm-3">Diagnosis</dt>
+        <dd class="col-sm-9">@(Model.Diagnosis ?? "—")</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="ID" />
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+</form>

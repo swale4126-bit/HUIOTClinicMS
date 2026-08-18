@@ -1,0 +1,67 @@
+@model IEnumerable<HUIOTClinicMS.Models.LabRequest>
+@{
+    ViewData["Title"] = "Lab Requests";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<div class="clinic-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <strong>Lab Requests (@Model.Count())</strong>
+        <a asp-controller="MedicalRecords" asp-action="Index" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-file-medical me-1"></i> Go to Medical Records
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted small py-4">
+            <p class="mb-2">No lab requests yet.</p>
+            <p class="mb-0">
+                Lab requests are created from a patient's Medical Record.
+                Open a Medical Record and click <strong>"Request Lab Test"</strong> to create one.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Patient</th>
+                        <th>Tests</th>
+                        <th>Requested By</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var badgeClass = item.Status switch
+                        {
+                            "Completed" => "badge-status-completed",
+                            "In Progress" => "badge-status-inprogress",
+                            _ => "badge-status-pending"
+                        };
+                        <tr>
+                            <td>@(item.Patient != null ? $"{item.Patient.FirstName} {item.Patient.LastName}" : "—")</td>
+                            <td class="small">@(item.TestTypes.Any() ? string.Join(", ", item.TestTypes.Select(t => t.TestName)) : "—")</td>
+                            <td class="small">@(item.RequestedBy != null ? $"{item.RequestedBy.FirstName} {item.RequestedBy.LastName}" : "—")</td>
+                            <td class="small text-muted">@item.RequestDate.ToString("yyyy-MM-dd")</td>
+                            <td><span class="badge @badgeClass">@item.Status</span></td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.LabRequestID" class="btn btn-outline-primary btn-sm">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

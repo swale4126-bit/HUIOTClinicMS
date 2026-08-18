@@ -1,0 +1,60 @@
+@model IEnumerable<HUIOTClinicMS.Models.EmergencyContact>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Emergency Contacts</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-1"></i> Create New
+    </a>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.PatientID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Patient)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContactName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContactPhoneNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Relationship)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.PatientID)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Patient)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ContactName)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ContactPhoneNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Relationship)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

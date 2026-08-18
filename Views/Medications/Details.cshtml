@@ -1,0 +1,39 @@
+@model HUIOTClinicMS.Models.Medication
+@{
+    ViewData["Title"] = "Dispensed Medication Details";
+}
+
+<div class="clinic-card mb-3">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Patient</dt>
+        <dd class="col-sm-9">@(Model.Prescription?.Patient != null ? $"{Model.Prescription.Patient.FirstName} {Model.Prescription.Patient.LastName}" : "—")</dd>
+
+        <dt class="col-sm-3">Prescription (Rx)</dt>
+        <dd class="col-sm-9">@(Model.Prescription?.RX ?? "—")</dd>
+
+        <dt class="col-sm-3">Medication</dt>
+        <dd class="col-sm-9">@Model.MedicationName (@(Model.MedicationType ?? "—"))</dd>
+
+        <dt class="col-sm-3">Dose</dt>
+        <dd class="col-sm-9">@(Model.PrescribedDose ?? "—")</dd>
+
+        <dt class="col-sm-3">Amount</dt>
+        <dd class="col-sm-9">@(Model.Amount?.ToString() ?? "—")</dd>
+
+        <dt class="col-sm-3">Quantity Dispensed</dt>
+        <dd class="col-sm-9">@(Model.DispensedQuantity?.ToString() ?? "—")</dd>
+
+        <dt class="col-sm-3">Dispensed By</dt>
+        <dd class="col-sm-9">@(Model.Pharmacist != null ? $"{Model.Pharmacist.FirstName} {Model.Pharmacist.LastName}" : "—")</dd>
+
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@Model.DispensedDate.ToString("yyyy-MM-dd HH:mm")</dd>
+
+        <dt class="col-sm-3">Remark</dt>
+        <dd class="col-sm-9">@(Model.Remark ?? "—")</dd>
+    </dl>
+</div>
+
+<div class="mt-3">
+    <a asp-controller="Prescriptions" asp-action="Details" asp-route-id="@Model.PrescriptionID" class="text-decoration-none">&lsaquo; Back to Prescription</a>
+</div>

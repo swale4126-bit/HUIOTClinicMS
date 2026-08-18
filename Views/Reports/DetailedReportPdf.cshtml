@@ -1,0 +1,226 @@
+@model HUIOTClinicMS.ViewModels.DetailedReportViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.ReportType</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: #fff;
+            color: #000;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #002D59;
+            padding-bottom: 10px;
+        }
+        .report-header h2 {
+            color: #002D59;
+            margin-bottom: 5px;
+        }
+        .patient-card {
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            page-break-inside: avoid;
+        }
+        .patient-header {
+            font-weight: bold;
+            font-size: 14px;
+            background: #002D59;
+            color: white;
+            padding: 8px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .section-title {
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 5px;
+            margin-top: 15px;
+            color: #002D59;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+            font-size: 11px;
+        }
+        th {
+            background-color: #eef6fa;
+            color: #002D59;
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-content">
+        <div class="report-header">
+            <h2>HU IoT Clinic Management System</h2>
+            <h4>@Model.ReportType</h4>
+            <p>Generated on: @Model.GeneratedDate.ToString("MMM dd, yyyy HH:mm")</p>
+        </div>
+
+        @if (!Model.PatientsData.Any())
+        {
+            <div class="alert alert-info text-center">No patient data found for this period.</div>
+        }
+
+        @foreach (var pData in Model.PatientsData)
+        {
+            <div class="patient-card">
+                <div class="patient-header">
+                    Patient: @pData.Patient.FirstName @pData.Patient.LastName (@pData.Patient.IDNumber)
+                </div>
+                <div class="info-grid">
+                    <div><span class="info-label">Department:</span> @(pData.Patient.Department?.DepartmentName ?? "—")</div>
+                    <div><span class="info-label">Registered:</span> @pData.Patient.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    <div><span class="info-label">Gender:</span> @pData.Patient.Gender</div>
+                </div>
+
+                @if (pData.MedicalRecords.Any())
+                {
+                    <div class="section-title">Medical Records</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Chief Complaint</th>
+                                <th>Diagnosis</th>
+                                <th>Treatment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mr in pData.MedicalRecords)
+                            {
+                                <tr>
+                                    <td>@mr.DateTime.ToString("MMM dd HH:mm")</td>
+                                    <td>@mr.ChiefComplaint</td>
+                                    <td>@mr.Diagnosis</td>
+                                    <td>@mr.Treatment</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                @if (pData.LabRequests.Any() || pData.LabResults.Any())
+                {
+                    <div class="section-title">Laboratory</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Tests Requested</th>
+                                <th>Results</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lr in pData.LabRequests)
+                            {
+                                var relatedResults = pData.LabResults.Where(r => r.MedicalRecordID == lr.MedicalRecordID).ToList();
+                                <tr>
+                                    <td>@lr.RequestDate.ToString("MMM dd HH:mm")</td>
+                                    <td>@string.Join(", ", lr.TestTypes.Select(t => t.TestName))</td>
+                                    <td>
+                                        @if(relatedResults.Any())
+                                        {
+                                            <ul>
+                                                @foreach(var res in relatedResults)
+                                                {
+                                                    <li>@res.TestType?.TestName: @res.Result</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <text>No results yet</text>
+                                        }
+                                    </td>
+                                    <td>@lr.Status</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                @if (pData.Prescriptions.Any())
+                {
+                    <div class="section-title">Prescriptions & Medications</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Medication</th>
+                                <th>Dosage/RX</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pr in pData.Prescriptions)
+                            {
+                                <tr>
+                                    <td>@pr.TimeDate.ToString("MMM dd HH:mm")</td>
+                                    <td>@(pr.Medication?.MedicationName ?? "—")</td>
+                                    <td>@pr.RX</td>
+                                    <td>@pr.Status</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        window.onload = function () {
+            var element = document.getElementById('pdf-content');
+            var filename = '@(Model.ReportType.Replace(" ", "_").Replace("(", "").Replace(")", "").Replace(",", "")).pdf';
+            var opt = {
+                margin:       0.5,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            
+            // Automatically generate and download PDF, then close tab or go back
+            html2pdf().set(opt).from(element).save().then(function() {
+                setTimeout(function() {
+                    window.history.back();
+                }, 2000); // go back after 2 seconds
+            });
+        };
+    </script>
+</body>
+</html>

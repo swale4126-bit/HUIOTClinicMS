@@ -1,0 +1,112 @@
+@model HUIOTClinicMS.ViewModels.PatientCreateViewModel
+@{
+    ViewData["Title"] = "Register New Patient";
+}
+
+<h2 class="mb-4">Register New Patient</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<form asp-action="Create" method="post">
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-3">Personal Information</strong>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-control" placeholder="First name" />
+                <span asp-validation-for="FirstName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-control" placeholder="Last name" />
+                <span asp-validation-for="LastName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Gender" class="form-label"></label>
+                <select asp-for="Gender" class="form-select">
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <span asp-validation-for="Gender" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="DateOfBirth" class="form-label"></label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="IDNumber" class="form-label"></label>
+                <input asp-for="IDNumber" class="form-control" placeholder="e.g. NaScR/3411/16" />
+                <span asp-validation-for="IDNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="0912-345-678" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Card Number</label>
+                <input class="form-control" value="Auto-generated on save" disabled />
+            </div>
+        </div>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-3">Academic Information</strong>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="DepartmentID" class="form-label"></label>
+                <select asp-for="DepartmentID" class="form-select" asp-items="ViewBag.Departments">
+                    <option value="">Select department</option>
+                </select>
+                <span asp-validation-for="DepartmentID" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="DormBlockID" class="form-label"></label>
+                <select asp-for="DormBlockID" class="form-select" asp-items="ViewBag.DormBlocks">
+                    <option value="">Select dorm block</option>
+                </select>
+                <span asp-validation-for="DormBlockID" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-3">Emergency Contact</strong>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="ContactName" class="form-label"></label>
+                <input asp-for="ContactName" class="form-control" placeholder="Full name" />
+                <span asp-validation-for="ContactName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="ContactPhoneNumber" class="form-label"></label>
+                <input asp-for="ContactPhoneNumber" class="form-control" placeholder="0911-222-333" />
+                <span asp-validation-for="ContactPhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Relationship" class="form-label"></label>
+                <select asp-for="Relationship" class="form-select">
+                    <option value="">Select relationship</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Relative">Relative</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span asp-validation-for="Relationship" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus me-1"></i> Register Patient
+        </button>
+        <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+    </div>
+</form>

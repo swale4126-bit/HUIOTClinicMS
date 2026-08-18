@@ -1,0 +1,62 @@
+﻿@model HUIOTClinicMS.ViewModels.MedicationDispenseViewModel
+@{
+    ViewData["Title"] = "Dispense Medication";
+}
+
+<h2 class="mb-4">Dispense Medication</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<form asp-action="Dispense" method="post">
+    <input type="hidden" asp-for="PrescriptionID" />
+
+    <div class="clinic-card mb-3">
+        <strong class="d-block mb-2">Patient</strong>
+        <input class="form-control mb-3" value="@Model.PatientDisplayName" disabled />
+        <strong class="d-block mb-2">Prescription (Rx)</strong>
+        <input class="form-control" value="@Model.RX" disabled />
+    </div>
+
+    <div class="clinic-card mb-3">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="MedicationName" class="form-label"></label>
+                <input asp-for="MedicationName" class="form-control" placeholder="e.g. Amoxicillin 500mg" />
+                <span asp-validation-for="MedicationName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="MedicationType" class="form-label"></label>
+                <input asp-for="MedicationType" class="form-control" placeholder="e.g. Antibiotic" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PrescribedDose" class="form-label"></label>
+                <input asp-for="PrescribedDose" class="form-control" placeholder="e.g. TID x 7 days" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Amount" class="form-label"></label>
+                <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="DispensedQuantity" class="form-label"></label>
+                <input asp-for="DispensedQuantity" type="number" class="form-control" />
+            </div>
+            <div class="col-12">
+                <label asp-for="Remark" class="form-label"></label>
+                <input asp-for="Remark" class="form-control" placeholder="Optional remarks" />
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-pills me-1"></i> Confirm Dispense
+        </button>
+        <a asp-action="Details" asp-route-id="@Model.PrescriptionID" class="btn btn-outline-primary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Upload Photo";
+}
+
+<h2 class="mb-4">Upload Profile Photo</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<div class="clinic-card" style="max-width: 460px;">
+    <div class="text-center mb-3">
+        @if (ViewBag.CurrentPhotoUrl != null)
+        {
+            <img src="@ViewBag.CurrentPhotoUrl" class="clinic-profile-photo-lg" alt="Current photo" />
+        }
+        else
+        {
+            <div class="clinic-avatar-initials clinic-avatar-initials-lg mx-auto">—</div>
+        }
+    </div>
+
+    <form asp-action="UploadPhoto" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Choose an image (JPG, PNG, or WEBP — max 2 MB)</label>
+            <input type="file" name="photo" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-upload me-1"></i> Upload
+            </button>
+            <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+        </div>
+    </form>
+</div>

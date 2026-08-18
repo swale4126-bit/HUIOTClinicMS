@@ -1,0 +1,144 @@
+@model HUIOTClinicMS.ViewModels.SettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center">
+        <a href="/" class="btn btn-outline-secondary me-3"><i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard</a>
+        <h2 class="mb-0">Settings</h2>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="list-group">
+            <a href="#account" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                <i class="fa-solid fa-user me-2"></i> Account Settings
+            </a>
+            <a href="#system" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fa-solid fa-sliders me-2"></i> System Settings
+            </a>
+            <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fa-solid fa-shield-halved me-2"></i> Security
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="tab-content">
+            <!-- Account Settings Tab -->
+            <div class="tab-pane fade show active clinic-card p-4" id="account">
+                <h4 class="mb-4 border-bottom pb-2">Account Profile</h4>
+                
+                <form asp-action="Edit" method="post">
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label fw-bold">Full Name</label>
+                        <div class="col-sm-9">
+                            <input type="text" asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label fw-bold">Email</label>
+                        <div class="col-sm-9">
+                            <input type="email" asp-for="Email" class="form-control" readonly disabled />
+                            <div class="form-text">Email address cannot be changed.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-bold">Phone Number</label>
+                        <div class="col-sm-9">
+                            <input type="text" asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-9 offset-sm-3">
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i>Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- System Settings Tab -->
+            <div class="tab-pane fade clinic-card p-4" id="system">
+                <h4 class="mb-4 border-bottom pb-2">System Configuration</h4>
+                <p class="text-muted mb-4">Manage global application settings, service points, and clinic configuration.</p>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold"><i class="fa-solid fa-hospital me-2"></i>Clinic Details</h6>
+                    <form>
+                        <div class="row g-3 align-items-center mb-3">
+                            <div class="col-auto">
+                                <label class="col-form-label">Clinic Name</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="text" class="form-control" value="HU IoT Student Clinic" disabled>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold"><i class="fa-solid fa-location-dot me-2"></i>Service Points</h6>
+                    <p class="small text-muted">Service points determine the queues available for patient routing.</p>
+                    <a href="/Queue" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Go to Queue Dashboard</a>
+                </div>
+                
+                <div class="alert alert-info py-2 small mb-4">
+                    <i class="fa-solid fa-circle-info me-2"></i> System configuration is currently restricted to developer level access.
+                </div>
+                
+                <h6 class="fw-bold"><i class="fa-solid fa-desktop me-2"></i>Appearance</h6>
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded bg-light">
+                    <div>
+                        <h6 class="mb-1">Dark Mode / Brightness</h6>
+                        <p class="text-muted small mb-0">Toggle dark mode to reduce eye strain in low-light conditions.</p>
+                    </div>
+                    <div class="form-check form-switch fs-4">
+                        <input class="form-check-input" type="checkbox" id="darkModeToggle" role="switch">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Tab -->
+            <div class="tab-pane fade clinic-card p-4" id="security">
+                <h4 class="mb-4 border-bottom pb-2">Security Settings</h4>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h6 class="fw-bold mb-1">Change Password</h6>
+                        <p class="text-muted small mb-0">It's a good idea to use a strong password that you're not using elsewhere.</p>
+                    </div>
+                    <a href="/Identity/Account/Manage/ChangePassword" class="btn btn-outline-primary">Update Password</a>
+                </div>
+                
+                <hr />
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Two-Factor Authentication</h6>
+                        <p class="text-muted small mb-0">Add an extra layer of security to your account.</p>
+                    </div>
+                    <button class="btn btn-outline-secondary" disabled>Enable 2FA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

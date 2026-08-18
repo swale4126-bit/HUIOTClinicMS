@@ -1,0 +1,53 @@
+@model IEnumerable<HUIOTClinicMS.Models.Medication>
+@{
+    ViewData["Title"] = "Medication Registry";
+}
+
+<div class="clinic-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <strong>Dispensed Medications (@Model.Count())</strong>
+        <form method="get" class="d-flex">
+            <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control form-control-sm" placeholder="Search by medication name..." style="min-width:200px;" />
+            <button type="submit" class="btn btn-outline-primary btn-sm ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr class="text-muted small">
+                    <th>Patient</th>
+                    <th>Medication</th>
+                    <th>Dose</th>
+                    <th>Qty Dispensed</th>
+                    <th>Dispensed By</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(item.Prescription?.Patient != null ? $"{item.Prescription.Patient.FirstName} {item.Prescription.Patient.LastName}" : "—")</td>
+                        <td>@item.MedicationName <span class="text-muted small">(@(item.MedicationType ?? "—"))</span></td>
+                        <td class="small text-muted">@(item.PrescribedDose ?? "—")</td>
+                        <td class="small text-muted">@(item.DispensedQuantity?.ToString() ?? "—")</td>
+                        <td class="small">@(item.Pharmacist != null ? $"{item.Pharmacist.FirstName} {item.Pharmacist.LastName}" : "—")</td>
+                        <td class="small text-muted">@item.DispensedDate.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.MedicationID" class="btn btn-outline-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted small py-3">
+                            @(string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string) ? "No medications dispensed yet." : $"No medications match \"{ViewBag.SearchTerm}\".")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

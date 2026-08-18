@@ -1,0 +1,47 @@
+@model HUIOTClinicMS.ViewModels.LabRequestEditViewModel
+@{
+    ViewData["Title"] = "Update Lab Request";
+}
+
+<h2 class="mb-4">Update Lab Request</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="LabRequestID" />
+
+    <div class="clinic-card mb-3">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Patient</dt>
+            <dd class="col-sm-9">@Model.PatientDisplayName</dd>
+            <dt class="col-sm-3">Tests</dt>
+            <dd class="col-sm-9">@Model.TestTypeNames</dd>
+            <dt class="col-sm-3">Requested By</dt>
+            <dd class="col-sm-9">@Model.RequestedByDisplayName</dd>
+            <dt class="col-sm-3">Date</dt>
+            <dd class="col-sm-9">@Model.RequestDate.ToString("yyyy-MM-dd HH:mm")</dd>
+        </dl>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label asp-for="ClinicalNotes" class="form-label"></label>
+                <textarea asp-for="ClinicalNotes" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a asp-action="Details" asp-route-id="@Model.LabRequestID" class="btn btn-outline-primary">Cancel</a>
+    </div>
+</form>

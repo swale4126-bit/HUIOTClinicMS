@@ -1,0 +1,187 @@
+@model HUIOTClinicMS.ViewModels.NurseDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.PatientsRegisteredToday</div>
+            <div class="clinic-metric-label">Total Registered Patients</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.PendingTriage</div>
+            <div class="clinic-metric-label">Pending Medical Record</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="clinic-card">
+            <div class="clinic-metric-value">@Model.TotalRecords</div>
+            <div class="clinic-metric-label">Total Records</div>
+        </div>
+    </div>
+</div>
+
+<div class="clinic-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <strong>Patient Queue</strong>
+        <a asp-controller="Patients" asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-user-plus me-1"></i> Register New Patient
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr class="text-muted small">
+                    <th>Patient Name</th>
+                    <th>Card No.</th>
+                    <th>Department</th>
+                    <th>Time In</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.TodaysQueue)
+                {
+                    <tr>
+                        <td>@item.FullName</td>
+                        <td class="small text-muted">@item.CardNumber</td>
+                        <td>@item.DepartmentName</td>
+                        <td class="small text-muted">@item.TimeIn.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @if (item.QueueType == "Result Review")
+                            {
+                                <span class="badge bg-info">Result Review</span>
+                            }
+                            else if (item.HasMedicalRecordToday)
+                            {
+                                <span class="badge badge-status-completed">Completed Medical Record</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-status-pending">Pending Medical Record</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-controller="Patients" asp-action="Details" asp-route-id="@item.PatientID" class="btn btn-outline-primary btn-sm">View Patient</a>
+                            @if (item.QueueType == "Result Review")
+                            {
+                                <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@item.MedicalRecordIDToday" class="btn btn-info btn-sm">View Record</a>
+                            }
+                            else if (!item.HasMedicalRecordToday)
+                            {
+                                <a asp-controller="MedicalRecords" asp-action="Create" asp-route-patientId="@item.PatientID" class="btn btn-primary btn-sm">Add Medical Record</a>
+                            }
+                            else
+                            {
+                                <a asp-controller="LabRequests" asp-action="Create" asp-route-medicalRecordId="@item.MedicalRecordIDToday" class="btn btn-warning btn-sm">Request Lab Test</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.TodaysQueue.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted small py-3">No patients registered yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="clinic-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <strong>Recent Lab Results (Needs Prescription)</strong>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr class="text-muted small">
+                    <th>Patient</th>
+                    <th>Test Type(s)</th>
+                    <th>Result(s)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in Model.RecentGroupedLabResults)
+                {
+                    <tr>
+                        <td class="fw-semibold">@(group.Patient != null ? $"{group.Patient.FirstName} {group.Patient.LastName}" : "—")</td>
+                        <td class="small">
+                            @foreach (var res in group.Results)
+                            {
+                                <div><i class="fa-solid fa-flask text-primary me-1"></i> @(res.TestType?.TestName ?? "—")</div>
+                            }
+                        </td>
+                        <td class="small text-muted">
+                            @foreach (var res in group.Results)
+                            {
+                                <div><strong>@res.Result</strong> @(string.IsNullOrEmpty(res.Remark) ? "" : $"({res.Remark})")</div>
+                            }
+                        </td>
+                        <td><span class="badge badge-status-completed">Completed</span></td>
+                        <td>
+                            <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@group.MedicalRecordID" class="btn btn-outline-primary btn-sm">View Medical Record</a>
+                            <a asp-controller="Prescriptions" asp-action="Create" asp-route-labResultId="@group.PrimaryLabResultID" class="btn btn-success btn-sm">Prescribe Patient</a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.RecentGroupedLabResults.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted small py-3">No pending lab results to prescribe.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="clinic-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <strong>Prescribed Patients</strong>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr class="text-muted small">
+                    <th>Patient</th>
+                    <th>Test Type(s)</th>
+                    <th>Result(s)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in Model.PrescribedPatients)
+                {
+                    <tr>
+                        <td class="fw-semibold">@(group.Patient != null ? $"{group.Patient.FirstName} {group.Patient.LastName}" : "—")</td>
+                        <td class="small">
+                            @foreach (var res in group.Results)
+                            {
+                                <div><i class="fa-solid fa-flask text-primary me-1"></i> @(res.TestType?.TestName ?? "—")</div>
+                            }
+                        </td>
+                        <td class="small text-muted">
+                            @foreach (var res in group.Results)
+                            {
+                                <div><strong>@res.Result</strong> @(string.IsNullOrEmpty(res.Remark) ? "" : $"({res.Remark})")</div>
+                            }
+                        </td>
+                        <td><span class="badge bg-success">Prescribed</span></td>
+                        <td>
+                            <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@group.MedicalRecordID" class="btn btn-outline-primary btn-sm">View Medical Record</a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.PrescribedPatients.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted small py-3">No patients prescribed yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

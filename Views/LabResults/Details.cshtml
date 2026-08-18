@@ -1,0 +1,56 @@
+@model HUIOTClinicMS.Models.LabResult
+
+@{
+    ViewData["Title"] = "Lab Result Details";
+}
+
+<div class="clinic-card max-w-600">
+    <h3 class="mb-4">Lab Result Details</h3>
+
+    <div class="mb-3">
+        <strong>Patient:</strong>
+        @if (Model.MedicalRecord?.Patient != null)
+        {
+            <span>@Model.MedicalRecord.Patient.FirstName @Model.MedicalRecord.Patient.LastName</span>
+        }
+        else
+        {
+            <span class="text-muted">N/A</span>
+        }
+    </div>
+
+    <div class="mb-3">
+        <strong>Test Type:</strong> 
+        <span>@(Model.TestType?.TestName ?? "N/A")</span>
+    </div>
+
+    <div class="mb-3">
+        <strong>Result:</strong>
+        <div class="p-3 bg-light border rounded mt-2">
+            @(string.IsNullOrEmpty(Model.Result) ? "No result recorded" : Model.Result)
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <strong>Remarks:</strong>
+        <span>@(string.IsNullOrEmpty(Model.Remark) ? "None" : Model.Remark)</span>
+    </div>
+
+    <div class="mb-3">
+        <strong>Performed By:</strong>
+        <span>@(Model.ResultPerformedBy != null ? $"{Model.ResultPerformedBy.FirstName} {Model.ResultPerformedBy.LastName}" : "N/A")</span>
+    </div>
+
+    <div class="mb-4">
+        <strong>Status:</strong>
+        <span class="badge badge-status-completed">@Model.Status</span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button onclick="history.back()" class="btn btn-secondary">Back</button>
+        @if (User.IsInRole("LabTechnician"))
+        {
+            <a asp-action="Edit" asp-route-id="@Model?.ID" class="btn btn-primary">Edit Result</a>
+        }
+    </div>
+</div>

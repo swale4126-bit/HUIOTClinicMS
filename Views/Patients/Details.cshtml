@@ -1,0 +1,78 @@
+@model HUIOTClinicMS.ViewModels.PatientDetailsViewModel
+@{
+    ViewData["Title"] = "Patient Details";
+    var patient = Model.Patient;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<div class="clinic-card mb-3">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <strong class="d-block fs-5">@patient.FirstName @patient.LastName</strong>
+            <span class="small text-muted">Card No. @patient.CardNumber</span>
+        </div>
+        <div class="d-flex gap-2">
+            @if (patient.IsActive)
+            {
+                <span class="badge badge-status-active align-self-center">Active</span>
+            }
+            else
+            {
+                <span class="badge badge-status-inactive align-self-center">Inactive</span>
+            }
+            <a asp-action="Edit" asp-route-id="@patient.ID" class="btn btn-outline-primary btn-sm">Edit</a>
+        </div>
+    </div>
+
+    <dl class="row mb-0">
+        <dt class="col-sm-3">University ID Number</dt>
+        <dd class="col-sm-9">@patient.IDNumber</dd>
+
+        <dt class="col-sm-3">Gender</dt>
+        <dd class="col-sm-9">@patient.Gender</dd>
+
+        <dt class="col-sm-3">Date of Birth</dt>
+        <dd class="col-sm-9">@patient.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">Phone</dt>
+        <dd class="col-sm-9">@(patient.PhoneNumber ?? "—")</dd>
+
+        <dt class="col-sm-3">Department</dt>
+        <dd class="col-sm-9">@(patient.Department?.DepartmentName ?? "—")</dd>
+
+        <dt class="col-sm-3">Dorm Block</dt>
+        <dd class="col-sm-9">@(patient.DormBlock?.BlockName ?? "—")</dd>
+
+        <dt class="col-sm-3">Registered</dt>
+        <dd class="col-sm-9">@patient.CreatedAt.ToString("yyyy-MM-dd")</dd>
+    </dl>
+</div>
+
+<div class="clinic-card">
+    <strong class="d-block mb-3">Emergency Contact</strong>
+    @if (Model.EmergencyContact != null)
+    {
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.EmergencyContact.ContactName</dd>
+
+            <dt class="col-sm-3">Phone</dt>
+            <dd class="col-sm-9">@Model.EmergencyContact.ContactPhoneNumber</dd>
+
+            <dt class="col-sm-3">Relationship</dt>
+            <dd class="col-sm-9">@(Model.EmergencyContact.Relationship ?? "—")</dd>
+        </dl>
+    }
+    else
+    {
+        <p class="text-muted small mb-0">No emergency contact on file.</p>
+    }
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="text-decoration-none">&lsaquo; Back to Patient Records</a>
+</div>

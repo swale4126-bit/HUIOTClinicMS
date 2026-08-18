@@ -1,0 +1,40 @@
+@model HUIOTClinicMS.ViewModels.PrescriptionEditViewModel
+@{
+    ViewData["Title"] = "Edit Prescription";
+}
+
+<h2 class="mb-4">Edit Prescription</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="PrescriptionID" />
+
+    <div class="clinic-card mb-3">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Patient</dt>
+            <dd class="col-sm-9">@Model.PatientDisplayName</dd>
+            <dt class="col-sm-3">Prescribed By</dt>
+            <dd class="col-sm-9">@Model.PrescribedByDisplayName</dd>
+            <dt class="col-sm-3">Date</dt>
+            <dd class="col-sm-9">@Model.TimeDate.ToString("yyyy-MM-dd HH:mm")</dd>
+        </dl>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <label asp-for="RX" class="form-label fw-bold"></label>
+        <textarea asp-for="RX" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="RX" class="text-danger small"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a asp-action="Details" asp-route-id="@Model.PrescriptionID" class="btn btn-outline-primary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
