@@ -1,4 +1,4 @@
-﻿@model List<HUIOTClinicMS.ViewModels.UserListItemViewModel>
+@model List<HUIOTClinicMS.ViewModels.UserListItemViewModel>
 @{
     ViewData["Title"] = "User Management";
 }
@@ -12,58 +12,82 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<div class="clinic-card">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <strong>All Users (@Model.Count)</strong>
+<div class="clinic-card border-0 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-users-gear text-primary me-2"></i> All Users 
+            <span class="badge bg-secondary bg-opacity-10 text-secondary ms-2 rounded-pill fs-6 fw-normal">@Model.Count</span>
+        </strong>
         <div class="d-flex gap-2 flex-wrap">
             <form method="get" class="d-flex">
-                <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control form-control-sm" placeholder="Search by staff name..." style="min-width:200px;" />
-                <button type="submit" class="btn btn-outline-primary btn-sm ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <div class="input-group input-group-sm shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control border-start-0 ps-0" placeholder="Search by name..." style="min-width:200px;" />
+                    <button type="submit" class="btn btn-primary px-3">Search</button>
+                </div>
             </form>
-            <a asp-action="Create" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-user-plus me-1"></i> Add User
+            <a asp-action="Create" class="btn btn-primary btn-sm d-flex align-items-center shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i> Add User
             </a>
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr class="text-muted small">
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="fw-semibold py-2">User</th>
+                    <th class="fw-semibold py-2">Role</th>
+                    <th class="fw-semibold py-2">Status</th>
+                    <th class="fw-semibold py-2 text-end">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0">
                 @foreach (var u in Model)
                 {
+                    var initials = string.Join("", u.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(n => char.ToUpper(n[0])));
                     <tr>
-                        <td>@u.FullName</td>
-                        <td class="small text-muted">@u.Email</td>
-                        <td>@u.Role</td>
+                        <td class="py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3 flex-shrink-0" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                    @initials
+                                </div>
+                                <div>
+                                    <div class="fw-medium text-dark">@u.FullName</div>
+                                    <div class="small text-muted">@u.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-secondary fw-medium"><i class="fa-solid fa-shield-halved me-1 small opacity-50"></i> @u.Role</span>
+                        </td>
                         <td>
                             @if (u.IsActive)
                             {
-                                <span class="badge badge-status-active">Active</span>
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fw-normal"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Active</span>
                             }
                             else
                             {
-                                <span class="badge badge-status-inactive">Inactive</span>
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 fw-normal"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Inactive</span>
                             }
                         </td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-outline-primary btn-sm">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-outline-primary btn-sm text-danger">Delete</a>
+                        <td class="text-end">
+                            <div class="btn-group shadow-sm">
+                                <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-light btn-sm text-primary border" title="Edit User">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-light btn-sm text-danger border" title="Delete User">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center text-muted small py-3">
-                            @(string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string) ? "No users found." : $"No users match \"{ViewBag.SearchTerm}\".")
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="fa-solid fa-users-slash d-block fa-3x text-light mb-3"></i>
+                            @(string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string) ? "No users found in the system." : $"No users match \"{ViewBag.SearchTerm}\".")
                         </td>
                     </tr>
                 }

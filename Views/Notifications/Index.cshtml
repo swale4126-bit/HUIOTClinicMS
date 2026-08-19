@@ -4,24 +4,32 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Notifications</h2>
+    <h2 class="mb-0 fw-bold text-dark">
+        <i class="fa-regular fa-bell text-primary me-2"></i>Notifications
+    </h2>
     <form asp-action="MarkAllAsRead" method="post">
-        <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-check-double me-2"></i>Mark All as Read</button>
+        <button type="submit" class="btn btn-outline-primary btn-sm shadow-sm"><i class="fa-solid fa-check-double me-1"></i> Mark All as Read</button>
     </form>
 </div>
 
-<div class="clinic-card p-0">
+<div class="clinic-card border-0 shadow-sm p-0 mb-4">
     @if (Model != null && Model.Any())
     {
-        <div class="list-group list-group-flush">
+        <div class="list-group list-group-flush rounded-bottom rounded-top">
             @foreach (var notification in Model)
             {
-                <a href="@(notification.RelatedRecordID.HasValue ? $"/Notifications/ViewRecord/{notification.ID}" : "#")" class="list-group-item list-group-item-action p-3 @(notification.IsRead ? "" : "bg-light border-start border-primary border-4")">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <h6 class="mb-1 fw-bold @(notification.IsRead ? "text-muted" : "text-dark")">@notification.Title</h6>
-                        <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                <a href="@(notification.RelatedRecordID.HasValue ? $"/Notifications/ViewRecord/{notification.ID}" : "#")" class="list-group-item list-group-item-action p-4 border-bottom @(notification.IsRead ? "" : "bg-primary bg-opacity-10 border-start border-primary border-4")">
+                    <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 fw-bold @(notification.IsRead ? "text-secondary" : "text-dark")">
+                            @if (!notification.IsRead)
+                            {
+                                <i class="fa-solid fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>
+                            }
+                            @notification.Title
+                        </h6>
+                        <small class="text-muted fw-medium"><i class="fa-regular fa-clock me-1"></i> @notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
                     </div>
-                    <p class="mb-1 text-muted">@notification.Message</p>
+                    <p class="mb-0 @(notification.IsRead ? "text-muted" : "text-secondary fw-medium") ps-@(notification.IsRead ? "0" : "3")">@notification.Message</p>
                 </a>
             }
         </div>
@@ -29,9 +37,11 @@
     else
     {
         <div class="p-5 text-center text-muted">
-            <i class="fa-regular fa-bell-slash fa-3x mb-3 opacity-50"></i>
-            <h5>No Notifications</h5>
-            <p>You're all caught up!</p>
+            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex justify-content-center align-items-center mb-4 shadow-sm" style="width: 100px; height: 100px;">
+                <i class="fa-regular fa-bell-slash fa-3x"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-2">No Notifications</h4>
+            <p class="mb-0">You're all caught up!</p>
         </div>
     }
 </div>

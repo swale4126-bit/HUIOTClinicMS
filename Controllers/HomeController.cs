@@ -49,5 +49,23 @@ namespace HUIOTClinicMS.Controllers
 
             return View(vm);
         }
+
+        [AllowAnonymous]
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Terms()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Developers()
+        {
+            return View();
+        }
     }
 }

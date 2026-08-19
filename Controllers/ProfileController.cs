@@ -75,6 +75,13 @@ namespace HUIOTClinicMS.Controllers
 
             user.FullName = vm.FullName;
             user.PhoneNumber = vm.PhoneNumber;
+            
+            if (user.Email != vm.Email)
+            {
+                await _userManager.SetEmailAsync(user, vm.Email);
+                await _userManager.SetUserNameAsync(user, vm.Email);
+            }
+
             await _userManager.UpdateAsync(user);
 
             TempData["SuccessMessage"] = "Profile updated successfully.";

@@ -5,142 +5,171 @@
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.PendingRequests</div>
-            <div class="clinic-metric-label">Pending Requests</div>
+        <div class="clinic-card border-0 shadow-sm text-center py-4 h-100">
+            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                <i class="fa-solid fa-flask text-warning fs-4"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@Model.PendingRequests</h3>
+            <small class="text-muted fw-medium text-uppercase" style="letter-spacing: 0.5px;">Pending Requests</small>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.CompletedToday</div>
-            <div class="clinic-metric-label">Completed Today</div>
+        <div class="clinic-card border-0 shadow-sm text-center py-4 h-100">
+            <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                <i class="fa-solid fa-check-double text-success fs-4"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@Model.CompletedToday</h3>
+            <small class="text-muted fw-medium text-uppercase" style="letter-spacing: 0.5px;">Completed Today</small>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.TotalResults</div>
-            <div class="clinic-metric-label">Total Results</div>
+        <div class="clinic-card border-0 shadow-sm text-center py-4 h-100">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                <i class="fa-solid fa-vials text-primary fs-4"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@Model.TotalResults</h3>
+            <small class="text-muted fw-medium text-uppercase" style="letter-spacing: 0.5px;">Total Results</small>
         </div>
     </div>
 </div>
 
-<div class="clinic-card mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <strong>Pending Lab Requests</strong>
+<div class="clinic-card border-0 shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-flask text-warning me-2"></i> Pending Lab Requests
+        </strong>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr class="text-muted small">
-                    <th>Patient</th>
-                    <th>Test Type(s)</th>
-                    <th>Notes</th>
-                    <th>Requested By</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="fw-semibold py-2">Patient</th>
+                    <th class="fw-semibold py-2">Test Type(s)</th>
+                    <th class="fw-semibold py-2">Notes</th>
+                    <th class="fw-semibold py-2">Requested By</th>
+                    <th class="fw-semibold py-2">Date</th>
+                    <th class="fw-semibold py-2">Status</th>
+                    <th class="fw-semibold py-2 text-end">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0">
                 @foreach (var request in Model.PendingLabRequests)
                 {
                     <tr>
-                        <td>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
-                        <td class="small fw-semibold text-dark">
+                        <td class="fw-medium text-dark py-2">@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
+                        <td class="small fw-semibold text-secondary py-2">
                             @(request.TestTypes != null && request.TestTypes.Any() ? string.Join(", ", request.TestTypes.Select(t => t.TestName)) : "—")
                         </td>
-                        <td class="small text-muted">@(request.ClinicalNotes ?? "—")</td>
-                        <td class="small">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
-                        <td class="small text-muted">@request.RequestDate.ToString("yyyy-MM-dd")</td>
-                        <td><span class="badge badge-status-pending">@request.Status</span></td>
-                        <td>
-                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-outline-primary btn-sm">View</a>
-                            <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-primary btn-sm">Enter Results</a>
+                        <td class="small text-muted py-2 text-truncate" style="max-width:150px;" title="@request.ClinicalNotes">@(request.ClinicalNotes ?? "—")</td>
+                        <td class="small text-muted py-2">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
+                        <td class="small text-muted py-2">@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                        <td class="py-2"><span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Pending</span></td>
+                        <td class="text-end py-2">
+                            <div class="btn-group shadow-sm">
+                                <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border" title="View Request">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-light btn-sm text-primary border" title="Enter Results">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }
                 @if (!Model.PendingLabRequests.Any())
                 {
-                    <tr><td colspan="6" class="text-center text-muted small py-3">No pending lab requests.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4"><i class="fa-solid fa-flask d-block fa-2x text-light mb-2"></i> No pending lab requests.</td></tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="clinic-card mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <strong>In Progress Lab Requests</strong>
+<div class="clinic-card border-0 shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-spinner text-info me-2"></i> In Progress Lab Requests
+        </strong>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr class="text-muted small">
-                    <th>Patient</th>
-                    <th>Notes</th>
-                    <th>Requested By</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="fw-semibold py-2">Patient</th>
+                    <th class="fw-semibold py-2">Notes</th>
+                    <th class="fw-semibold py-2">Requested By</th>
+                    <th class="fw-semibold py-2">Date</th>
+                    <th class="fw-semibold py-2">Status</th>
+                    <th class="fw-semibold py-2 text-end">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0">
                 @foreach (var request in Model.InProgressLabRequests)
                 {
                     <tr>
-                        <td>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
-                        <td class="small text-muted">@(request.ClinicalNotes ?? "—")</td>
-                        <td class="small">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
-                        <td class="small text-muted">@request.RequestDate.ToString("yyyy-MM-dd")</td>
-                        <td><span class="badge badge-status-inprogress">@request.Status</span></td>
-                        <td>
-                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-outline-primary btn-sm">View</a>
-                            <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-primary btn-sm">Enter Results</a>
+                        <td class="fw-medium text-dark py-2">@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
+                        <td class="small text-muted py-2 text-truncate" style="max-width:150px;" title="@request.ClinicalNotes">@(request.ClinicalNotes ?? "—")</td>
+                        <td class="small text-muted py-2">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
+                        <td class="small text-muted py-2">@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                        <td class="py-2"><span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> In Progress</span></td>
+                        <td class="text-end py-2">
+                            <div class="btn-group shadow-sm">
+                                <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border" title="View Request">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-light btn-sm text-primary border" title="Enter Results">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }
                 @if (!Model.InProgressLabRequests.Any())
                 {
-                    <tr><td colspan="6" class="text-center text-muted small py-3">No in-progress lab requests.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-spinner d-block fa-2x text-light mb-2"></i> No in-progress lab requests.</td></tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="clinic-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <strong>Completed Lab Requests</strong>
+<div class="clinic-card border-0 shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-check-double text-success me-2"></i> Completed Lab Requests
+        </strong>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr class="text-muted small">
-                    <th>Patient</th>
-                    <th>Notes</th>
-                    <th>Requested By</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="fw-semibold py-2">Patient</th>
+                    <th class="fw-semibold py-2">Notes</th>
+                    <th class="fw-semibold py-2">Requested By</th>
+                    <th class="fw-semibold py-2">Date</th>
+                    <th class="fw-semibold py-2">Status</th>
+                    <th class="fw-semibold py-2 text-end">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0">
                 @foreach (var request in Model.CompletedLabRequests)
                 {
                     <tr>
-                        <td>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
-                        <td class="small text-muted">@(request.ClinicalNotes ?? "—")</td>
-                        <td class="small">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
-                        <td class="small text-muted">@request.RequestDate.ToString("yyyy-MM-dd")</td>
-                        <td><span class="badge badge-status-completed">@request.Status</span></td>
-                        <td>
-                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-outline-primary btn-sm">View</a>
+                        <td class="fw-medium text-dark py-2">@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
+                        <td class="small text-muted py-2 text-truncate" style="max-width:150px;" title="@request.ClinicalNotes">@(request.ClinicalNotes ?? "—")</td>
+                        <td class="small text-muted py-2">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
+                        <td class="small text-muted py-2">@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                        <td class="py-2"><span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Completed</span></td>
+                        <td class="text-end py-2">
+                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border shadow-sm" title="View Request">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
                         </td>
                     </tr>
                 }
                 @if (!Model.CompletedLabRequests.Any())
                 {
-                    <tr><td colspan="6" class="text-center text-muted small py-3">No completed lab requests.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-check-double d-block fa-2x text-light mb-2"></i> No completed lab requests.</td></tr>
                 }
             </tbody>
         </table>

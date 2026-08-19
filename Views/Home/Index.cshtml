@@ -1,65 +1,91 @@
-﻿@model HUIOTClinicMS.ViewModels.DashboardViewModel
+@model HUIOTClinicMS.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.TotalPatients</div>
-            <div class="clinic-metric-label">Total Patients</div>
+        <div class="clinic-card d-flex align-items-center border-0 shadow-sm h-100 clinic-hover-lift">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex justify-content-center align-items-center me-3" style="width: 56px; height: 56px;">
+                <i class="fa-solid fa-users fa-xl"></i>
+            </div>
+            <div>
+                <div class="clinic-metric-value mb-0" style="line-height: 1;">@Model.TotalPatients</div>
+                <div class="clinic-metric-label text-muted small fw-semibold text-uppercase mt-1">Total Patients</div>
+            </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.MedicalRecordsToday</div>
-            <div class="clinic-metric-label">Medical Records Today</div>
+        <div class="clinic-card d-flex align-items-center border-0 shadow-sm h-100 clinic-hover-lift">
+            <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 d-flex justify-content-center align-items-center me-3" style="width: 56px; height: 56px;">
+                <i class="fa-solid fa-file-medical fa-xl"></i>
+            </div>
+            <div>
+                <div class="clinic-metric-value mb-0" style="line-height: 1;">@Model.MedicalRecordsToday</div>
+                <div class="clinic-metric-label text-muted small fw-semibold text-uppercase mt-1">Records Today</div>
+            </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.PendingLabRequests</div>
-            <div class="clinic-metric-label">Pending Lab Requests</div>
+        <div class="clinic-card d-flex align-items-center border-0 shadow-sm h-100 clinic-hover-lift">
+            <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex justify-content-center align-items-center me-3" style="width: 56px; height: 56px;">
+                <i class="fa-solid fa-flask fa-xl"></i>
+            </div>
+            <div>
+                <div class="clinic-metric-value mb-0" style="line-height: 1;">@Model.PendingLabRequests</div>
+                <div class="clinic-metric-label text-muted small fw-semibold text-uppercase mt-1">Pending Labs</div>
+            </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="clinic-card">
-            <div class="clinic-metric-value">@Model.ActiveStaff</div>
-            <div class="clinic-metric-label">Active Staff</div>
+        <div class="clinic-card d-flex align-items-center border-0 shadow-sm h-100 clinic-hover-lift">
+            <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-flex justify-content-center align-items-center me-3" style="width: 56px; height: 56px;">
+                <i class="fa-solid fa-user-doctor fa-xl"></i>
+            </div>
+            <div>
+                <div class="clinic-metric-value mb-0" style="line-height: 1;">@Model.ActiveStaff</div>
+                <div class="clinic-metric-label text-muted small fw-semibold text-uppercase mt-1">Active Staff</div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <div class="col-lg-6">
-        <div class="clinic-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <strong>Recent Medical Records</strong>
-                <a asp-controller="MedicalRecords" asp-action="Index" class="small text-decoration-none">View All &rsaquo;</a>
+        <div class="clinic-card border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <strong class="d-flex align-items-center text-dark">
+                    <i class="fa-solid fa-file-medical text-primary me-2"></i> Recent Medical Records
+                </strong>
+                <a asp-controller="MedicalRecords" asp-action="Index" class="small text-decoration-none fw-semibold">View All <i class="fa-solid fa-arrow-right ms-1"></i></a>
             </div>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
-                        <tr class="text-muted small">
-                            <th>Patient</th>
-                            <th>Date</th>
-                            <th>Diagnosis</th>
-                            <th>Created By</th>
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="fw-semibold">Patient</th>
+                            <th class="fw-semibold">Date</th>
+                            <th class="fw-semibold">Diagnosis</th>
+                            <th class="fw-semibold text-end">Clinician</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-top-0 text-nowrap">
                         @foreach (var record in Model.RecentMedicalRecords)
                         {
                             <tr>
-                                <td>@(record.Patient != null ? $"{record.Patient.FirstName} {record.Patient.LastName}" : "—")</td>
-                                <td class="small text-muted">@record.DateTime.ToString("yyyy-MM-dd")</td>
-                                <td>@(record.Diagnosis ?? "—")</td>
-                                <td class="small">@(record.CreatedBy != null ? $"{record.CreatedBy.FirstName} {record.CreatedBy.LastName}" : "—")</td>
+                                <td class="fw-medium">@(record.Patient != null ? $"{record.Patient.FirstName} {record.Patient.LastName}" : "—")</td>
+                                <td class="small text-muted">@record.DateTime.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="text-truncate text-muted" style="max-width: 180px;" title="@record.Diagnosis">
+                                        @(record.Diagnosis ?? "—")
+                                    </div>
+                                </td>
+                                <td class="small text-end">@(record.CreatedBy != null ? $"{record.CreatedBy.FirstName} {record.CreatedBy.LastName}" : "—")</td>
                             </tr>
                         }
                         @if (!Model.RecentMedicalRecords.Any())
                         {
-                            <tr><td colspan="4" class="text-center text-muted small py-3">No medical records yet.</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted small py-4"><i class="fa-regular fa-folder-open mb-2 d-block fa-2x text-light"></i>No medical records yet.</td></tr>
                         }
                     </tbody>
                 </table>
@@ -68,42 +94,48 @@
     </div>
 
     <div class="col-lg-6">
-        <div class="clinic-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <strong>Recent Lab Requests</strong>
-                <a asp-controller="LabRequests" asp-action="Index" class="small text-decoration-none">View All &rsaquo;</a>
+        <div class="clinic-card border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <strong class="d-flex align-items-center text-dark">
+                    <i class="fa-solid fa-flask text-warning me-2"></i> Recent Lab Requests
+                </strong>
+                <a asp-controller="LabRequests" asp-action="Index" class="small text-decoration-none fw-semibold">View All <i class="fa-solid fa-arrow-right ms-1"></i></a>
             </div>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
-                        <tr class="text-muted small">
-                            <th>Patient</th>
-                            <th>Notes</th>
-                            <th>Requested By</th>
-                            <th>Date</th>
-                            <th>Status</th>
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="fw-semibold">Patient</th>
+                            <th class="fw-semibold">Notes</th>
+                            <th class="fw-semibold">Date</th>
+                            <th class="fw-semibold text-end">Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-top-0 text-nowrap">
                         @foreach (var request in Model.RecentLabRequests)
                         {
                             var badgeClass = request.Status switch
                             {
-                                "Completed" => "badge-status-completed",
-                                "In Progress" => "badge-status-inprogress",
-                                _ => "badge-status-pending"
+                                "Completed" => "bg-success bg-opacity-10 text-success border border-success border-opacity-25",
+                                "In Progress" => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25",
+                                _ => "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25"
                             };
                             <tr>
-                                <td>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
-                                <td class="small text-muted">@(request.ClinicalNotes ?? "—")</td>
-                                <td class="small">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
-                                <td class="small text-muted">@request.RequestDate.ToString("yyyy-MM-dd")</td>
-                                <td><span class="badge @badgeClass">@request.Status</span></td>
+                                <td class="fw-medium">@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
+                                <td>
+                                    <div class="text-truncate text-muted small" style="max-width: 150px;" title="@request.ClinicalNotes">
+                                        @(request.ClinicalNotes ?? "—")
+                                    </div>
+                                </td>
+                                <td class="small text-muted">@request.RequestDate.ToString("MMM dd, yyyy")</td>
+                                <td class="text-end">
+                                    <span class="badge rounded-pill fw-normal @badgeClass">@request.Status</span>
+                                </td>
                             </tr>
                         }
                         @if (!Model.RecentLabRequests.Any())
                         {
-                            <tr><td colspan="5" class="text-center text-muted small py-3">No lab requests yet.</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted small py-4"><i class="fa-solid fa-vial mb-2 d-block fa-2x text-light"></i>No lab requests yet.</td></tr>
                         }
                     </tbody>
                 </table>
@@ -112,17 +144,22 @@
     </div>
 </div>
 
-<div class="clinic-card">
-    <strong class="d-block mb-3">Quick Actions</strong>
-    <div class="d-flex gap-2 flex-wrap">
-        <a asp-controller="Patients" asp-action="Create" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-user-plus me-1"></i> Register Patient
-        </a>
-        <a asp-controller="MedicalRecords" asp-action="Create" class="btn btn-outline-primary btn-sm">
-            <i class="fa-solid fa-file-medical me-1"></i> New Medical Record
-        </a>
-        <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-primary btn-sm">
-            <i class="fa-solid fa-chart-column me-1"></i> View Reports
-        </a>
+<div class="clinic-card border-0 shadow-sm bg-primary bg-opacity-10">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="mb-3 mb-md-0">
+            <strong class="d-block text-primary fs-5 mb-1"><i class="fa-solid fa-bolt text-warning me-2"></i> Quick Actions</strong>
+            <span class="text-muted small">Jump straight into your most common tasks.</span>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-controller="Patients" asp-action="Create" class="btn btn-primary px-4 shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i> Register Patient
+            </a>
+            <a asp-controller="MedicalRecords" asp-action="Create" class="btn btn-light text-primary border-primary border-opacity-25 px-4 shadow-sm">
+                <i class="fa-solid fa-file-medical me-2"></i> New Medical Record
+            </a>
+            <a asp-controller="Reports" asp-action="Index" class="btn btn-light text-secondary border-secondary border-opacity-25 px-4 shadow-sm">
+                <i class="fa-solid fa-chart-column me-2"></i> View Reports
+            </a>
+        </div>
     </div>
 </div>

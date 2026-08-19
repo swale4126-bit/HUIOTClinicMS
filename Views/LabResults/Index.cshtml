@@ -12,68 +12,88 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<div class="clinic-card">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <strong>Lab Results (@Model.Count())</strong>
+<div class="clinic-card border-0 shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-vials text-primary me-2"></i> Lab Results 
+            <span class="badge bg-secondary bg-opacity-10 text-secondary ms-2 rounded-pill fs-6 fw-normal">@Model.Count()</span>
+        </strong>
         <div class="d-flex gap-2 flex-wrap">
             <form method="get" class="d-flex">
-                <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control form-control-sm" placeholder="Search by patient name..." style="min-width:200px;" />
-                <button type="submit" class="btn btn-outline-primary btn-sm ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <div class="input-group input-group-sm shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control border-start-0 ps-0" placeholder="Search by patient name..." style="min-width:200px;" />
+                    <button type="submit" class="btn btn-primary px-3">Search</button>
+                </div>
             </form>
-            <a asp-controller="MedicalRecords" asp-action="Index" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-file-medical me-1"></i> Go to Medical Records
+            <a asp-controller="MedicalRecords" asp-action="Index" class="btn btn-primary btn-sm d-flex align-items-center shadow-sm">
+                <i class="fa-solid fa-file-medical me-2"></i> Medical Records
             </a>
         </div>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center text-muted small py-4">
+        <div class="text-center text-muted py-5">
+            <i class="fa-solid fa-vial-circle-check d-block fa-3x text-light mb-3"></i>
             @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
             {
                 <p class="mb-0">No lab results match "@ViewBag.SearchTerm".</p>
             }
             else
             {
-                <p class="mb-2">No lab results yet.</p>
+                <p class="mb-0">No lab results recorded yet.</p>
             }
         </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-sm align-middle">
-                <thead>
-                    <tr class="text-muted small">
-                        <th>Patient</th>
-                        <th>Test Type</th>
-                        <th>Result</th>
-                        <th>Performed By</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="fw-semibold py-2">Patient</th>
+                        <th class="fw-semibold py-2">Test Type</th>
+                        <th class="fw-semibold py-2">Result</th>
+                        <th class="fw-semibold py-2">Performed By</th>
+                        <th class="fw-semibold py-2">Status</th>
+                        <th class="fw-semibold py-2 text-end">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="border-top-0">
                     @foreach (var item in Model)
                     {
-                        var badgeClass = item.Status switch
-                        {
-                            "Completed" => "badge-status-completed",
-                            "In Progress" => "badge-status-inprogress",
-                            _ => "badge-status-pending"
-                        };
                         <tr>
-                            <td>@(item.MedicalRecord?.Patient != null ? $"{item.MedicalRecord.Patient.FirstName} {item.MedicalRecord.Patient.LastName}" : "—")</td>
-                            <td class="small">@(item.TestType?.TestName ?? "—")</td>
-                            <td class="small">@item.Result</td>
-                            <td class="small">@(item.ResultPerformedBy != null ? $"{item.ResultPerformedBy.FirstName} {item.ResultPerformedBy.LastName}" : "—")</td>
-                            <td><span class="badge @badgeClass">@item.Status</span></td>
-                            <td>
-                                <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-outline-primary btn-sm">View</a>
-                                @if (User.IsInRole("HealthOfficer"))
+                            <td class="fw-medium text-dark py-2">@(item.MedicalRecord?.Patient != null ? $"{item.MedicalRecord.Patient.FirstName} {item.MedicalRecord.Patient.LastName}" : "—")</td>
+                            <td class="small text-secondary py-2">@(item.TestType?.TestName ?? "—")</td>
+                            <td class="small fw-semibold text-dark py-2 text-truncate" style="max-width:150px;" title="@item.Result">@item.Result</td>
+                            <td class="small text-muted py-2">@(item.ResultPerformedBy != null ? $"{item.ResultPerformedBy.FirstName} {item.ResultPerformedBy.LastName}" : "—")</td>
+                            <td class="py-2">
+                                @if (item.Status == "Completed")
                                 {
-                                    <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-outline-primary btn-sm text-danger">Delete</a>
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Completed</span>
                                 }
+                                else if (item.Status == "In Progress")
+                                {
+                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> In Progress</span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Pending</span>
+                                }
+                            </td>
+                            <td class="text-end py-2">
+                                <div class="btn-group shadow-sm">
+                                    <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-light btn-sm text-info border" title="View Result">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </a>
+                                    @if (User.IsInRole("HealthOfficer"))
+                                    {
+                                        <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-light btn-sm text-danger border" title="Delete Result">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

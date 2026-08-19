@@ -40,16 +40,6 @@ namespace HUIOTClinicMS.Controllers
             }
 
             int? actualSpId = spId;
-            
-            // For Health Officer, if spId is 0, we show all departments. If it's null, we also default to 0 for Health Officers.
-            if (User.IsInRole("HealthOfficer"))
-            {
-                if (spId == null) actualSpId = 0;
-            }
-            else
-            {
-                if (spId == null) actualSpId = servicePoints.First().ID;
-            }
 
             if (actualSpId == null && !string.IsNullOrEmpty(queueType))
             {
@@ -57,6 +47,19 @@ namespace HUIOTClinicMS.Controllers
                 if (matchingSp != null)
                 {
                     actualSpId = matchingSp.ID;
+                }
+            }
+            
+            if (actualSpId == null)
+            {
+                // For Health Officer, if spId is 0, we show all departments. If it's null, we also default to 0 for Health Officers.
+                if (User.IsInRole("HealthOfficer"))
+                {
+                    actualSpId = 0;
+                }
+                else
+                {
+                    actualSpId = servicePoints.First().ID;
                 }
             }
 

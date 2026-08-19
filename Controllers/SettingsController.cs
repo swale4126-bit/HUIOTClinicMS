@@ -66,6 +66,13 @@ namespace HUIOTClinicMS.Controllers
             if (user == null) return NotFound();
 
             user.FullName = vm.FullName;
+            
+            if (user.Email != vm.Email)
+            {
+                await _userManager.SetEmailAsync(user, vm.Email);
+                await _userManager.SetUserNameAsync(user, vm.Email);
+            }
+
             await _userManager.UpdateAsync(user);
 
             if (user.StaffID != null)

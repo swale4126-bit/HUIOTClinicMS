@@ -3,46 +3,58 @@
     ViewData["Title"] = "Medication Registry";
 }
 
-<div class="clinic-card">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <strong>Dispensed Medications (@Model.Count())</strong>
+<div class="clinic-card border-0 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3">
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-pills text-info me-2"></i> Dispensed Medications 
+            <span class="badge bg-secondary bg-opacity-10 text-secondary ms-2 rounded-pill fs-6 fw-normal">@Model.Count()</span>
+        </strong>
         <form method="get" class="d-flex">
-            <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control form-control-sm" placeholder="Search by medication name..." style="min-width:200px;" />
-            <button type="submit" class="btn btn-outline-primary btn-sm ms-2"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="input-group input-group-sm shadow-sm">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control border-start-0 ps-0" placeholder="Search by medication..." style="min-width:220px;" />
+                <button type="submit" class="btn btn-primary px-3">Search</button>
+            </div>
         </form>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm align-middle">
-            <thead>
-                <tr class="text-muted small">
-                    <th>Patient</th>
-                    <th>Medication</th>
-                    <th>Dose</th>
-                    <th>Qty Dispensed</th>
-                    <th>Dispensed By</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="fw-semibold py-2">Patient</th>
+                    <th class="fw-semibold py-2">Medication</th>
+                    <th class="fw-semibold py-2">Dose</th>
+                    <th class="fw-semibold py-2">Qty Dispensed</th>
+                    <th class="fw-semibold py-2">Pharmacist</th>
+                    <th class="fw-semibold py-2">Date</th>
+                    <th class="fw-semibold py-2 text-end">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0 text-nowrap">
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@(item.Prescription?.Patient != null ? $"{item.Prescription.Patient.FirstName} {item.Prescription.Patient.LastName}" : "—")</td>
-                        <td>@item.MedicationName <span class="text-muted small">(@(item.MedicationType ?? "—"))</span></td>
-                        <td class="small text-muted">@(item.PrescribedDose ?? "—")</td>
-                        <td class="small text-muted">@(item.DispensedQuantity?.ToString() ?? "—")</td>
-                        <td class="small">@(item.Pharmacist != null ? $"{item.Pharmacist.FirstName} {item.Pharmacist.LastName}" : "—")</td>
-                        <td class="small text-muted">@item.DispensedDate.ToString("yyyy-MM-dd")</td>
+                        <td class="fw-medium">@(item.Prescription?.Patient != null ? $"{item.Prescription.Patient.FirstName} {item.Prescription.Patient.LastName}" : "—")</td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@item.MedicationID" class="btn btn-outline-primary btn-sm">View</a>
+                            <span class="text-dark fw-medium">@item.MedicationName</span> 
+                            <span class="badge bg-light text-muted ms-1 border">@(item.MedicationType ?? "—")</span>
+                        </td>
+                        <td class="small text-secondary">@(item.PrescribedDose ?? "—")</td>
+                        <td class="fw-semibold text-success">@(item.DispensedQuantity?.ToString() ?? "—")</td>
+                        <td class="small text-muted">@(item.Pharmacist != null ? $"{item.Pharmacist.FirstName} {item.Pharmacist.LastName}" : "—")</td>
+                        <td class="small text-muted">@item.DispensedDate.ToString("MMM dd, yyyy")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@item.MedicationID" class="btn btn-light btn-sm text-info border shadow-sm" title="View Details">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
                         </td>
                     </tr>
                 }
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="7" class="text-center text-muted small py-3">
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="fa-solid fa-capsules d-block fa-3x text-light mb-3"></i>
                             @(string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string) ? "No medications dispensed yet." : $"No medications match \"{ViewBag.SearchTerm}\".")
                         </td>
                     </tr>

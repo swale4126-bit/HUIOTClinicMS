@@ -1,33 +1,37 @@
-﻿@{
+@{
     ViewData["Title"] = "Upload Photo";
 }
 
-<h2 class="mb-4">Upload Profile Photo</h2>
+<div class="clinic-card border-0 shadow-sm" style="max-width: 460px;">
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+            <i class="fa-solid fa-camera-retro"></i>
+        </div>
+        <h4 class="mb-0 fw-bold text-dark">Upload Profile Photo</h4>
+    </div>
 
-<div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-<div class="clinic-card" style="max-width: 460px;">
-    <div class="text-center mb-3">
+    <div class="text-center mb-4 p-4 bg-light rounded shadow-sm border border-secondary border-opacity-10">
         @if (ViewBag.CurrentPhotoUrl != null)
         {
-            <img src="@ViewBag.CurrentPhotoUrl" class="clinic-profile-photo-lg" alt="Current photo" />
+            <img src="@ViewBag.CurrentPhotoUrl" class="clinic-profile-photo-lg shadow-sm border" alt="Current photo" style="width: 120px; height: 120px;" />
         }
         else
         {
-            <div class="clinic-avatar-initials clinic-avatar-initials-lg mx-auto">—</div>
+            <div class="clinic-avatar-initials clinic-avatar-initials-lg mx-auto shadow-sm border bg-white text-primary" style="width: 120px; height: 120px; font-size: 2.5rem;">—</div>
         }
     </div>
 
     <form asp-action="UploadPhoto" method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label class="form-label">Choose an image (JPG, PNG, or WEBP — max 2 MB)</label>
-            <input type="file" name="photo" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+        <div class="mb-4">
+            <label class="form-label fw-semibold text-secondary small text-uppercase">Choose an image</label>
+            <input type="file" name="photo" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp" />
+            <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i> JPG, PNG, or WEBP (Max 2 MB)</small>
         </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-upload me-1"></i> Upload
+        <div class="d-flex gap-2 pt-3 border-top mt-4">
+            <button type="submit" class="btn btn-primary shadow-sm px-4">
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Photo
             </button>
-            <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+            <a asp-action="Index" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
         </div>
     </form>
 </div>

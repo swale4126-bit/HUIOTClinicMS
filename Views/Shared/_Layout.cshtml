@@ -24,7 +24,7 @@
         <aside class="clinic-sidebar">
             <div class="clinic-sidebar-brand">
                 <div class="clinic-sidebar-brand-icon">
-                    <i class="fa-solid fa-heart-pulse text-white"></i>
+                    <i class="fa-solid fa-stethoscope text-white"></i>
                 </div>
                 <div class="clinic-sidebar-brand-text">
                     <strong>HU IoT Clinic</strong>
@@ -44,7 +44,14 @@
                                                         .Take(2)
                                                         .Select(n => char.ToUpper(n[0])));
                     }
-                    @initials
+                    @if (!string.IsNullOrEmpty(currentUser?.ProfilePhotoUrl))
+                    {
+                        <img src="@currentUser.ProfilePhotoUrl" class="clinic-avatar-img" alt="Profile" />
+                    }
+                    else
+                    {
+                        @initials
+                    }
                 </div>
                 <div class="clinic-sidebar-profile-text">
                     <strong>@displayName</strong>
@@ -219,11 +226,11 @@
                             &copy; @DateTime.Now.Year - HU IoT Student Clinic Management System
                         </div>
                         <div>
-                            <span class="text-muted">Developed by</span> <a href="#" class="text-decoration-none fw-bold">Hawassa University IoT</a>
+                            <span class="text-muted">Developed by</span> <a href="/Home/Developers" class="text-decoration-none fw-bold">Hawassa University IoT</a>
                             <span class="mx-1">&middot;</span>
-                            <a href="#" class="text-decoration-none text-muted">Privacy Policy</a>
+                            <a href="/Home/Privacy" class="text-decoration-none text-muted hover-primary">Privacy Policy</a>
                             <span class="mx-1">&middot;</span>
-                            <a href="#" class="text-decoration-none text-muted">Terms of Service</a>
+                            <a href="/Home/Terms" class="text-decoration-none text-muted hover-primary">Terms of Service</a>
                         </div>
                     </div>
                 </div>

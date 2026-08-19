@@ -137,7 +137,7 @@ namespace HUIOTClinicMS.Controllers
 
                 if (!isPatientInService)
                 {
-                    ModelState.AddModelError(string.Empty, "Sorry, our patient ur queue is not arrived so please wait.");
+                    ModelState.AddModelError(string.Empty, "The patient must be called and 'In Service' in the Consultation queue before you can prescribe.");
                 }
             }
 
@@ -189,16 +189,15 @@ namespace HUIOTClinicMS.Controllers
 
             // Notify Pharmacists
             var pharmacists = await _userManager.GetUsersInRoleAsync("Pharmacist");
+            var pharmacistIds = pharmacists.Select(p => p.Id).ToList();
             var patientInfo = labResult?.MedicalRecord?.Patient != null ? $"{labResult.MedicalRecord.Patient.FirstName} {labResult.MedicalRecord.Patient.LastName} (Card No: {labResult.MedicalRecord.Patient.CardNumber})" : "Unknown Patient";
-            foreach (var pharmacist in pharmacists)
-            {
-                await _notificationService.CreateNotificationAsync(
-                    pharmacist.Id,
-                    "New Prescription",
-                    $"New prescription submitted for {patientInfo}.",
-                    "Prescription",
-                    prescription.PrescriptionID);
-            }
+            
+            await _notificationService.CreateNotificationForUsersAsync(
+                pharmacistIds,
+                "New Prescription",
+                $"New prescription submitted for {patientInfo}.",
+                "Prescription",
+                prescription.PrescriptionID);
 
             TempData["SuccessMessage"] = "Prescription created successfully.";
             return RedirectToAction(nameof(Details), new { id = prescription.PrescriptionID });
@@ -369,7 +368,7 @@ namespace HUIOTClinicMS.Controllers
 
                 if (!isPatientInService)
                 {
-                    ModelState.AddModelError(string.Empty, "Sorry, our patient ur queue is not arrived so please wait.");
+                    ModelState.AddModelError(string.Empty, "The patient must be called and 'In Service' in the Pharmacy queue before you can dispense.");
                 }
             }
 
@@ -397,6 +396,19 @@ namespace HUIOTClinicMS.Controllers
             prescription.Status = "Dispensed";
 
             await _context.SaveChangesAsync();
+
+            // Notify Prescribing Nurse/Clinician
+            var prescribedByUser = await _context.Users.FirstOrDefaultAsync(u => u.StaffID == prescription.PrescribedByID);
+            if (prescribedByUser != null)
+            {
+                var patInfo = prescription.Patient != null ? $"{prescription.Patient.FirstName} {prescription.Patient.LastName} (Card No: {prescription.Patient.CardNumber})" : "Unknown Patient";
+                await _notificationService.CreateNotificationAsync(
+                    prescribedByUser.Id,
+                    "Medication Dispensed",
+                    $"Medication dispensed for {patInfo}.",
+                    "Medication",
+                    medication.MedicationID);
+            }
 
             TempData["SuccessMessage"] = "Medication dispensed and linked to the prescription.";
             return RedirectToAction(nameof(Details), new { id });

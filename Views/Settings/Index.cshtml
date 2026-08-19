@@ -3,32 +3,34 @@
     ViewData["Title"] = "Settings";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3">
     <div class="d-flex align-items-center">
-        <a href="/" class="btn btn-outline-secondary me-3"><i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard</a>
-        <h2 class="mb-0">Settings</h2>
+        <a href="/" class="btn btn-light btn-sm border shadow-sm me-3" title="Back to Dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+        <strong class="d-flex align-items-center text-dark fs-5">
+            <i class="fa-solid fa-gear text-primary me-2"></i> Settings
+        </strong>
     </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-<div class="row">
+<div class="row g-4">
     <div class="col-md-3 mb-4">
-        <div class="list-group">
-            <a href="#account" class="list-group-item list-group-item-action active" data-bs-toggle="list">
-                <i class="fa-solid fa-user me-2"></i> Account Settings
+        <div class="list-group shadow-sm border-0 rounded overflow-hidden">
+            <a href="#account" class="list-group-item list-group-item-action active fw-medium py-3 border-0" data-bs-toggle="list">
+                <i class="fa-solid fa-user text-primary me-2 opacity-75"></i> Account Settings
             </a>
-            <a href="#system" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                <i class="fa-solid fa-sliders me-2"></i> System Settings
+            <a href="#system" class="list-group-item list-group-item-action fw-medium py-3 border-0" data-bs-toggle="list">
+                <i class="fa-solid fa-sliders text-primary me-2 opacity-75"></i> System Settings
             </a>
-            <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                <i class="fa-solid fa-shield-halved me-2"></i> Security
+            <a href="#security" class="list-group-item list-group-item-action fw-medium py-3 border-0" data-bs-toggle="list">
+                <i class="fa-solid fa-shield-halved text-primary me-2 opacity-75"></i> Security
             </a>
         </div>
     </div>
@@ -36,103 +38,131 @@
     <div class="col-md-9">
         <div class="tab-content">
             <!-- Account Settings Tab -->
-            <div class="tab-pane fade show active clinic-card p-4" id="account">
-                <h4 class="mb-4 border-bottom pb-2">Account Profile</h4>
+            <div class="tab-pane fade show active clinic-card border-0 shadow-sm p-4" id="account">
+                @{
+                    var showEditForm = !ViewData.ModelState.IsValid;
+                    var viewClass = showEditForm ? "d-none" : "";
+                    var editClass = showEditForm ? "" : "d-none";
+                    var editBtnClass = showEditForm ? "d-none" : "btn btn-outline-primary btn-sm shadow-sm";
+                }
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h5 class="mb-0 text-dark fw-bold"><i class="fa-regular fa-id-card text-primary me-2"></i> Account Profile</h5>
+                    <button type="button" class="@editBtnClass" id="editProfileBtn"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Profile</button>
+                </div>
                 
-                <form asp-action="Edit" method="post">
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label fw-bold">Full Name</label>
-                        <div class="col-sm-9">
-                            <input type="text" asp-for="FullName" class="form-control" />
-                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                <div id="profileView" class="@viewClass">
+                    <dl class="row mb-0" style="line-height: 2.8;">
+                        <dt class="col-sm-3 text-muted fw-medium">Full Name</dt>
+                        <dd class="col-sm-9 fw-bold text-dark fs-6">@Model.FullName</dd>
+                        
+                        <dt class="col-sm-3 text-muted fw-medium">Email</dt>
+                        <dd class="col-sm-9 fw-bold text-dark fs-6">@Model.Email</dd>
+                        
+                        <dt class="col-sm-3 text-muted fw-medium">Phone Number</dt>
+                        <dd class="col-sm-9 fw-bold text-dark fs-6">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd>
+                    </dl>
+                </div>
+                
+                <div id="profileEdit" class="@editClass">
+                    <form asp-action="Edit" method="post" class="bg-light p-4 rounded border">
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-sm-3 col-form-label fw-bold text-dark">Full Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" asp-for="FullName" class="form-control shadow-sm" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label fw-bold">Email</label>
-                        <div class="col-sm-9">
-                            <input type="email" asp-for="Email" class="form-control" readonly disabled />
-                            <div class="form-text">Email address cannot be changed.</div>
+                        
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-sm-3 col-form-label fw-bold text-dark">Email</label>
+                            <div class="col-sm-9">
+                                <input type="email" asp-for="Email" class="form-control shadow-sm" />
+                                <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                                <div class="form-text small"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Changing this will also change your login username.</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <label class="col-sm-3 col-form-label fw-bold">Phone Number</label>
-                        <div class="col-sm-9">
-                            <input type="text" asp-for="PhoneNumber" class="form-control" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        
+                        <div class="row mb-4 align-items-center">
+                            <label class="col-sm-3 col-form-label fw-bold text-dark">Phone Number</label>
+                            <div class="col-sm-9">
+                                <input type="text" asp-for="PhoneNumber" class="form-control shadow-sm" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-sm-9 offset-sm-3">
-                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i>Save Changes</button>
+                        
+                        <div class="row mt-4 pt-3 border-top">
+                            <div class="col-sm-9 offset-sm-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm"><i class="fa-solid fa-save me-2"></i>Save Changes</button>
+                                <button type="button" class="btn btn-light px-4 border shadow-sm" id="cancelEditBtn">Cancel</button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
             
             <!-- System Settings Tab -->
-            <div class="tab-pane fade clinic-card p-4" id="system">
-                <h4 class="mb-4 border-bottom pb-2">System Configuration</h4>
+            <div class="tab-pane fade clinic-card border-0 shadow-sm p-4" id="system">
+                <h5 class="mb-4 border-bottom pb-3 text-dark fw-bold"><i class="fa-solid fa-sliders text-primary me-2"></i> System Configuration</h5>
                 <p class="text-muted mb-4">Manage global application settings, service points, and clinic configuration.</p>
                 
-                <div class="mb-4">
-                    <h6 class="fw-bold"><i class="fa-solid fa-hospital me-2"></i>Clinic Details</h6>
+                <div class="mb-4 bg-light p-3 rounded border">
+                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-hospital me-2 text-primary"></i>Clinic Details</h6>
                     <form>
-                        <div class="row g-3 align-items-center mb-3">
-                            <div class="col-auto">
-                                <label class="col-form-label">Clinic Name</label>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-4">
+                                <label class="col-form-label fw-medium text-muted">Clinic Name</label>
                             </div>
-                            <div class="col-auto">
-                                <input type="text" class="form-control" value="HU IoT Student Clinic" disabled>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control shadow-sm bg-white" value="HU IoT Student Clinic" disabled>
                             </div>
                         </div>
                     </form>
                 </div>
                 
-                <div class="mb-4">
-                    <h6 class="fw-bold"><i class="fa-solid fa-location-dot me-2"></i>Service Points</h6>
-                    <p class="small text-muted">Service points determine the queues available for patient routing.</p>
-                    <a href="/Queue" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Go to Queue Dashboard</a>
+                <div class="mb-4 bg-light p-3 rounded border">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-location-dot me-2 text-primary"></i>Service Points</h6>
+                            <p class="small text-muted mb-0">Service points determine the queues available for patient routing.</p>
+                        </div>
+                        <a href="/Queue" class="btn btn-primary btn-sm shadow-sm"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Queue Dashboard</a>
+                    </div>
                 </div>
                 
-                <div class="alert alert-info py-2 small mb-4">
-                    <i class="fa-solid fa-circle-info me-2"></i> System configuration is currently restricted to developer level access.
+                <div class="alert alert-info py-3 small mb-4 shadow-sm border-info border-opacity-25 bg-info bg-opacity-10 text-dark">
+                    <i class="fa-solid fa-circle-info me-2 text-info"></i> System configuration is currently restricted to developer level access.
                 </div>
                 
-                <h6 class="fw-bold"><i class="fa-solid fa-desktop me-2"></i>Appearance</h6>
-                <div class="d-flex justify-content-between align-items-center p-3 border rounded bg-light">
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-desktop me-2 text-primary"></i>Appearance</h6>
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded shadow-sm">
                     <div>
-                        <h6 class="mb-1">Dark Mode / Brightness</h6>
+                        <h6 class="mb-1 fw-bold">Dark Mode / Brightness</h6>
                         <p class="text-muted small mb-0">Toggle dark mode to reduce eye strain in low-light conditions.</p>
                     </div>
-                    <div class="form-check form-switch fs-4">
-                        <input class="form-check-input" type="checkbox" id="darkModeToggle" role="switch">
+                    <div class="form-check form-switch fs-4 mb-0">
+                        <input class="form-check-input shadow-sm" type="checkbox" id="darkModeToggle" role="switch">
                     </div>
                 </div>
             </div>
             
             <!-- Security Tab -->
-            <div class="tab-pane fade clinic-card p-4" id="security">
-                <h4 class="mb-4 border-bottom pb-2">Security Settings</h4>
+            <div class="tab-pane fade clinic-card border-0 shadow-sm p-4" id="security">
+                <h5 class="mb-4 border-bottom pb-3 text-dark fw-bold"><i class="fa-solid fa-shield-halved text-primary me-2"></i> Security Settings</h5>
                 
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 border rounded bg-light">
                     <div>
-                        <h6 class="fw-bold mb-1">Change Password</h6>
+                        <h6 class="fw-bold text-dark mb-1">Change Password</h6>
                         <p class="text-muted small mb-0">It's a good idea to use a strong password that you're not using elsewhere.</p>
                     </div>
-                    <a href="/Identity/Account/Manage/ChangePassword" class="btn btn-outline-primary">Update Password</a>
+                    <a href="/Identity/Account/Manage/ChangePassword" class="btn btn-outline-primary btn-sm shadow-sm fw-medium px-3"><i class="fa-solid fa-key me-2"></i>Update Password</a>
                 </div>
                 
-                <hr />
-                
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded bg-light opacity-75">
                     <div>
-                        <h6 class="fw-bold mb-1">Two-Factor Authentication</h6>
+                        <h6 class="fw-bold text-dark mb-1">Two-Factor Authentication</h6>
                         <p class="text-muted small mb-0">Add an extra layer of security to your account.</p>
                     </div>
-                    <button class="btn btn-outline-secondary" disabled>Enable 2FA</button>
+                    <button class="btn btn-secondary btn-sm shadow-sm px-3" disabled><i class="fa-solid fa-mobile-screen-button me-2"></i>Enable 2FA</button>
                 </div>
             </div>
         </div>
@@ -141,4 +171,28 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editBtn = document.getElementById('editProfileBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            const viewDiv = document.getElementById('profileView');
+            const editDiv = document.getElementById('profileEdit');
+            
+            if(editBtn && cancelBtn && viewDiv && editDiv) {
+                editBtn.addEventListener('click', function() {
+                    viewDiv.classList.add('d-none');
+                    editDiv.classList.remove('d-none');
+                    editBtn.classList.add('d-none');
+                    editBtn.className = 'd-none'; // override Razor's injected class if any
+                });
+                
+                cancelBtn.addEventListener('click', function() {
+                    editDiv.classList.add('d-none');
+                    viewDiv.classList.remove('d-none');
+                    editBtn.classList.remove('d-none');
+                    editBtn.className = 'btn btn-outline-primary btn-sm';
+                });
+            }
+        });
+    </script>
 }

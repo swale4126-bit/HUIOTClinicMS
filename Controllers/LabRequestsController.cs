@@ -157,15 +157,14 @@ public class LabRequestsController : Controller
 
         // Notify Lab Technicians
         var labTechs = await _userManager.GetUsersInRoleAsync("LabTechnician");
-        foreach (var tech in labTechs)
-        {
-            await _notificationService.CreateNotificationAsync(
-                tech.Id,
-                "New Lab Request",
-                $"New laboratory request created for {patientInfo}.",
-                "LabRequest",
-                labRequest.LabRequestID);
-        }
+        var labTechIds = labTechs.Select(t => t.Id).ToList();
+        
+        await _notificationService.CreateNotificationForUsersAsync(
+            labTechIds,
+            "New Lab Request",
+            $"New laboratory request created for {patientInfo}.",
+            "LabRequest",
+            labRequest.LabRequestID);
 
         TempData["SuccessMessage"] = "Lab request submitted successfully.";
         return RedirectToAction(nameof(Details), new { id = labRequest.LabRequestID });

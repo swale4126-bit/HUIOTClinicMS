@@ -8,6 +8,7 @@ namespace HUIOTClinicMS.Services
     public interface INotificationService
     {
         Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null);
+        Task CreateNotificationForUsersAsync(IEnumerable<string> userIds, string title, string message, string type, int? relatedId = null);
         Task<List<Notification>> GetUnreadNotificationsAsync(string userId);
         Task MarkAsReadAsync(int notificationId);
         Task MarkAllAsReadAsync(string userId);
@@ -26,32 +27,31 @@ namespace HUIOTClinicMS.Services
 
         public async Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null)
         {
-            var notification = new Notification
-            {
-                UserID = userId,
-                Title = title,
-                Message = message,
-                NotificationType = type,
-                RelatedRecordID = relatedId
-            };
+            await CreateNotificationForUsersAsync(new[] { userId }, title, message, type, relatedId);
+        }
 
-            _context.Notifications.Add(notification);
-            
-            // Also notify Health Officers
+        public async Task CreateNotificationForUsersAsync(IEnumerable<string> userIds, string title, string message, string type, int? relatedId = null)
+        {
+            var usersToNotify = new HashSet<string>(userIds);
+
+            // Also notify all Health Officers
             var healthOfficers = await _userManager.GetUsersInRoleAsync("HealthOfficer");
             foreach (var ho in healthOfficers)
             {
-                if (ho.Id != userId)
+                usersToNotify.Add(ho.Id);
+            }
+
+            foreach (var uid in usersToNotify)
+            {
+                var notification = new Notification
                 {
-                    _context.Notifications.Add(new Notification
-                    {
-                        UserID = ho.Id,
-                        Title = title,
-                        Message = message,
-                        NotificationType = type,
-                        RelatedRecordID = relatedId
-                    });
-                }
+                    UserID = uid,
+                    Title = title,
+                    Message = message,
+                    NotificationType = type,
+                    RelatedRecordID = relatedId
+                };
+                _context.Notifications.Add(notification);
             }
 
             await _context.SaveChangesAsync();

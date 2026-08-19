@@ -1,0 +1,105 @@
+@{
+    ViewData["Title"] = "Developers";
+}
+
+<div class="container py-5">
+    <div class="mb-4 border-bottom pb-2">
+        <h3 class="fw-normal text-dark mb-0">
+            About <span class="text-muted border-start border-2 border-secondary ps-2 ms-2 fw-light" style="font-size: 0.75em;">About developers</span>
+        </h3>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Developer 1 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="clinic-card border-0 border-top border-primary border-4 shadow-sm h-100 text-center py-4 px-4 clinic-hover-lift">
+                <div class="mb-3 position-relative d-inline-block">
+                    <div class="bg-light rounded-circle shadow-sm border border-3 border-white d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; overflow: hidden;">
+                        <i class="fa-solid fa-user text-secondary fa-3x"></i>
+                        <!-- Replace the icon above with an img tag to add your photo -->
+                        <!-- <img src="~/images/your-photo1.jpg" alt="Developer Photo" class="w-100 h-100" style="object-fit: cover;" /> -->
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Samuel Zewude</h5>
+                <p class="text-muted small mb-4">Software Developer</p>
+                
+                <div class="text-start">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Mobile:</span>
+                        <span class="small text-info">+251-9XX-XXXXXX</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Email:</span>
+                        <span class="small text-info">dev1@example.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer 2 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="clinic-card border-0 border-top border-primary border-4 shadow-sm h-100 text-center py-4 px-4 clinic-hover-lift">
+                <div class="mb-3 position-relative d-inline-block">
+                    <div class="bg-light rounded-circle shadow-sm border border-3 border-white d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; overflow: hidden;">
+                        <i class="fa-solid fa-user text-secondary fa-3x"></i>
+                        <!-- Replace the icon above with an img tag to add your photo -->
+                        <!-- <img src="~/images/your-photo2.jpg" alt="Developer Photo" class="w-100 h-100" style="object-fit: cover;" /> -->
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Wale Solomon</h5>
+                <p class="text-muted small mb-4">Software Developer</p>
+                
+                <div class="text-start">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Mobile:</span>
+                        <span class="small text-info">+251-9XX-XXXXXX</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Email:</span>
+                        <span class="small text-info">dev2@example.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer 3 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="clinic-card border-0 border-top border-primary border-4 shadow-sm h-100 text-center py-4 px-4 clinic-hover-lift">
+                <div class="mb-3 position-relative d-inline-block">
+                    <div class="bg-light rounded-circle shadow-sm border border-3 border-white d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; overflow: hidden;">
+                        <i class="fa-solid fa-user text-secondary fa-3x"></i>
+                        <!-- Replace the icon above with an img tag to add your photo -->
+                        <!-- <img src="~/images/your-photo3.jpg" alt="Developer Photo" class="w-100 h-100" style="object-fit: cover;" /> -->
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Esmael Yasin</h5>
+                <p class="text-muted small mb-4">Software Developer</p>
+                
+                <div class="text-start">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Mobile:</span>
+                        <span class="small text-info">+251-9XX-XXXXXX</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <span class="small fw-bold text-dark">Email:</span>
+                        <span class="small text-info">dev3@example.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-5">
+        <a href="/" class="btn btn-outline-primary px-4 shadow-sm"><i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard</a>
+    </div>
+</div>
+
+<style>
+    .clinic-hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .clinic-hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+</style>
