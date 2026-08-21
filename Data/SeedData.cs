@@ -228,20 +228,24 @@ namespace HUIOTClinicMS.Data
                 return;
             }
 
-            var patient = new Patient
+            var patient = await context.Patients.FirstOrDefaultAsync(p => p.CardNumber == "HU-2024-0042");
+            if (patient == null)
             {
-                IDNumber = "HU-2024-0042",
-                FirstName = firstName,
-                LastName = lastName,
-                Gender = "Female",
-                DateOfBirth = new DateTime(2002, 3, 15),
-                DepartmentID = departmentId,
-                DormBlockID = dormBlockId,
-                PhoneNumber = "0912-345-678",
-                CardNumber = "HU-2024-0042"
-            };
-            context.Patients.Add(patient);
-            await context.SaveChangesAsync();
+                patient = new Patient
+                {
+                    IDNumber = "HU-2024-0042",
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Gender = "Female",
+                    DateOfBirth = new DateTime(2002, 3, 15),
+                    DepartmentID = departmentId,
+                    DormBlockID = dormBlockId,
+                    PhoneNumber = "0912-345-678",
+                    CardNumber = "HU-2024-0042"
+                };
+                context.Patients.Add(patient);
+                await context.SaveChangesAsync();
+            }
 
             var user = new ApplicationUser
             {
