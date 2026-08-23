@@ -14,7 +14,7 @@ namespace HUIOTClinicMS.Data
 
             await context.Database.MigrateAsync();
 
-            string[] roles = { "HealthOfficer", "Nurse", "LabTechnician", "Pharmacist", "Student" };
+            string[] roles = { "HealthOfficer", "Nurse", "LabTechnician", "Pharmacist" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -114,9 +114,6 @@ namespace HUIOTClinicMS.Data
             await CreateStaffDemoUser(userManager, context, "nurse@hu.edu.et", "Demo@123", "Nurse", "Tigist", "Worku");
             await CreateStaffDemoUser(userManager, context, "labtech@hu.edu.et", "Demo@123", "LabTechnician", "Yonas", "Abebe");
             await CreateStaffDemoUser(userManager, context, "pharmacist@hu.edu.et", "Demo@123", "Pharmacist", "Hiwot", "Demisse");
-
-            await CreateStudentDemoUser(userManager, context, "student@hu.edu.et", "Demo@123",
-                "Amara", "Tadesse", department.ID, dormBlock.ID);
         }
 
         private static async Task MergeLegacyDepartmentAsync(ApplicationDbContext context, string legacyName, string canonicalName)
@@ -213,54 +210,5 @@ namespace HUIOTClinicMS.Data
             }
         }
 
-        private static async Task CreateStudentDemoUser(
-            UserManager<ApplicationUser> userManager, ApplicationDbContext context,
-            string email, string password, string firstName, string lastName,
-            int departmentId, int dormBlockId)
-        {
-            var existingUser = await userManager.FindByEmailAsync(email);
-            if (existingUser != null)
-            {
-                if (!await userManager.IsInRoleAsync(existingUser, "Student"))
-                {
-                    await userManager.AddToRoleAsync(existingUser, "Student");
-                }
-                return;
-            }
-
-            var patient = await context.Patients.FirstOrDefaultAsync(p => p.CardNumber == "HU-2024-0042");
-            if (patient == null)
-            {
-                patient = new Patient
-                {
-                    IDNumber = "HU-2024-0042",
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Gender = "Female",
-                    DateOfBirth = new DateTime(2002, 3, 15),
-                    DepartmentID = departmentId,
-                    DormBlockID = dormBlockId,
-                    PhoneNumber = "0912-345-678",
-                    CardNumber = "HU-2024-0042"
-                };
-                context.Patients.Add(patient);
-                await context.SaveChangesAsync();
-            }
-
-            var user = new ApplicationUser
-            {
-                UserName = email,
-                Email = email,
-                EmailConfirmed = true,
-                FullName = $"{firstName} {lastName}",
-                PatientID = patient.ID
-            };
-
-            var result = await userManager.CreateAsync(user, password);
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(user, "Student");
-            }
-        }
     }
 }
