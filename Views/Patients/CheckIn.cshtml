@@ -1,0 +1,144 @@
+@model HUIOTClinicMS.Models.Patient
+@{
+    ViewData["Title"] = "Patient Check-In";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-0">Patient Clinical Check-In</h4>
+                <p class="text-muted small mb-0">Initiate a new clinical visit/encounter for returning patient</p>
+            </div>
+            <a asp-action="Details" asp-route-id="@Model.ID" class="btn btn-outline-secondary btn-sm">&larr; Back to Patient Chart</a>
+        </div>
+
+        <div class="clinic-card mb-4">
+            <h6 class="border-bottom pb-2 mb-3 text-secondary">Patient Identification</h6>
+            <div class="row g-2">
+                <div class="col-sm-6">
+                    <strong>Full Name:</strong> @Model.FirstName @Model.LastName
+                </div>
+                <div class="col-sm-6">
+                    <strong>Card Number:</strong> <span class="badge bg-light text-dark border">@Model.CardNumber</span>
+                </div>
+                <div class="col-sm-6">
+                    <strong>University ID:</strong> @Model.IDNumber
+                </div>
+                <div class="col-sm-6">
+                    <strong>Department / Dorm:</strong> @(Model.Department?.DepartmentName ?? "—") / @(Model.DormBlock?.BlockName ?? "—")
+                </div>
+            </div>
+        </div>
+
+        @if (ViewBag.ActiveEncounter != null)
+        {
+            var active = (HUIOTClinicMS.Models.ClinicalEncounter)ViewBag.ActiveEncounter;
+            <div class="alert alert-warning mb-4 shadow-sm border-warning">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h6 class="alert-heading mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Active Clinical Visit in Progress</h6>
+                        <span class="small">
+                            Patient already has an active visit: <strong>Encounter #@active.ID</strong> 
+                            (@active.Type, Started @active.StartTime.ToString("MMM dd HH:mm"), Status: <strong>@active.Status</strong>).
+                        </span>
+                    </div>
+                    <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@active.ID" class="btn btn-primary btn-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Resume Active Visit (#@active.ID)
+                    </a>
+                </div>
+                <div class="small mt-2 text-muted border-top pt-2">
+                    Submitting either option below will <strong>resume or escalate this existing encounter</strong>. If you explicitly intend to open a separate concurrent episode of care, check the confirmation box below.
+                </div>
+            </div>
+        }
+
+        <div class="row g-3">
+            <!-- Routine Encounter Selection -->
+            <div class="col-md-6">
+                <div class="card h-100 border-primary shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">Routine</span>
+                            <h5 class="card-title mb-0 text-primary">Standard Outpatient</h5>
+                        </div>
+                        <p class="card-text text-muted small flex-grow-1">
+                            Standard clinical consultation for routine symptoms, scheduled review, or elective checkup.
+                            Places patient into the general triage or consultation waiting queue.
+                        </p>
+                        <form asp-action="CheckIn" method="post" class="mt-3">
+                            <input type="hidden" name="id" value="@Model.ID" />
+                            <input type="hidden" name="type" value="Routine" />
+                            
+                            <div class="mb-3 text-start">
+                                <label class="form-label small fw-semibold text-secondary">Assign Clinician / Nurse (Optional)</label>
+                                <select name="assignedToStaffId" class="form-select form-select-sm" asp-items="ViewBag.Clinicians">
+                                    <option value="">-- General Queue (Next Available) --</option>
+                                </select>
+                            </div>
+
+                            @if (ViewBag.ActiveEncounter != null)
+                            {
+                                <div class="form-check text-start mb-3">
+                                    <input class="form-check-input" type="checkbox" name="forceNewVisit" value="true" id="forceRoutine">
+                                    <label class="form-check-label small text-muted" for="forceRoutine">
+                                        Force separate new episode of care
+                                    </label>
+                                </div>
+                            }
+
+                            <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
+                                <i class="bi bi-clock"></i> Check-In (Routine)
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Encounter Selection -->
+            <div class="col-md-6">
+                <div class="card h-100 border-danger shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-danger me-2">STAT / Red</span>
+                            <h5 class="card-title mb-0 text-danger">Emergency Fast-Track</h5>
+                        </div>
+                        <p class="card-text text-muted small flex-grow-1">
+                            Urgent / acute presentation requiring immediate clinical assessment, stabilization, or referral.
+                            <strong>Bypasses routine queues</strong>, immediately alerts Health Officers, and routes straight to emergency triage.
+                        </p>
+                        <form asp-action="CheckIn" method="post" class="mt-3">
+                            <input type="hidden" name="id" value="@Model.ID" />
+                            <input type="hidden" name="type" value="Emergency" />
+
+                            <div class="mb-3 text-start">
+                                <label class="form-label small fw-semibold text-secondary">Assign Attending Clinician</label>
+                                <select name="assignedToStaffId" class="form-select form-select-sm" asp-items="ViewBag.Clinicians">
+                                    <option value="">-- Next Available Emergency Provider --</option>
+                                </select>
+                            </div>
+
+                            @if (ViewBag.ActiveEncounter != null)
+                            {
+                                <div class="form-check text-start mb-3">
+                                    <input class="form-check-input" type="checkbox" name="forceNewVisit" value="true" id="forceEmergency">
+                                    <label class="form-check-label small text-muted" for="forceEmergency">
+                                        Force separate new emergency episode
+                                    </label>
+                                </div>
+                            }
+
+                            <button type="submit" class="btn btn-danger w-100 fw-bold">
+                                <i class="bi bi-lightning-charge-fill"></i> STAT Emergency Intake
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4 py-2 px-3 small">
+            <strong>Ethiopian Healthcare Standard (ES 7192:2025):</strong> All clinical encounters preserve single patient identity across visits. An encounter links all associated vital signs, clinical assessments, diagnostic requests, and prescriptions into a non-repudiable audit trail.
+        </div>
+    </div>
+</div>

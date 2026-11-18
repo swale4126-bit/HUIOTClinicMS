@@ -1,0 +1,143 @@
+@model IEnumerable<HUIOTClinicMS.Models.ClinicalEncounter>
+@{
+    ViewData["Title"] = "Clinical Encounters";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="mb-1">Clinical Encounters</h2>
+        <span class="text-muted small">Active patient visits, emergency intake, and clinical care episodes</span>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="btn-group btn-group-sm shadow-sm" role="group">
+            <a asp-action="Index" asp-route-myEncounters="false" class="btn @(ViewBag.MyEncounters != true ? "btn-primary" : "btn-outline-primary")">
+                All Encounters
+            </a>
+            <a asp-action="Index" asp-route-myEncounters="true" class="btn @(ViewBag.MyEncounters == true ? "btn-primary" : "btn-outline-primary")">
+                Assigned to Me
+            </a>
+        </div>
+        <a asp-controller="Patients" asp-action="Index" class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-users me-1"></i> Patient Registry
+        </a>
+    </div>
+</div>
+
+<form method="get" class="mb-4">
+    <div class="row g-2">
+        <div class="col-md-5">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by student name, ID number, or card..." value="@ViewBag.SearchTerm" />
+        </div>
+        <div class="col-md-4">
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All Statuses</option>
+                <option value="InEmergency" selected="@(ViewBag.SelectedStatus == "InEmergency")">Emergency (STAT)</option>
+                <option value="Registered" selected="@(ViewBag.SelectedStatus == "Registered")">Registered</option>
+                <option value="InTriage" selected="@(ViewBag.SelectedStatus == "InTriage")">In Triage</option>
+                <option value="WaitingConsultation" selected="@(ViewBag.SelectedStatus == "WaitingConsultation")">Waiting Consultation</option>
+                <option value="InConsultation" selected="@(ViewBag.SelectedStatus == "InConsultation")">In Consultation</option>
+                <option value="WaitingLab" selected="@(ViewBag.SelectedStatus == "WaitingLab")">Waiting Laboratory</option>
+                <option value="WaitingPharmacy" selected="@(ViewBag.SelectedStatus == "WaitingPharmacy")">Waiting Pharmacy</option>
+                <option value="Discharged" selected="@(ViewBag.SelectedStatus == "Discharged")">Discharged</option>
+                <option value="Transferred" selected="@(ViewBag.SelectedStatus == "Transferred")">Transferred</option>
+            </select>
+        </div>
+        @if (ViewBag.MyEncounters == true)
+        {
+            <input type="hidden" name="myEncounters" value="true" />
+        }
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="fa-solid fa-filter me-1"></i> Filter Encounters
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Encounter ID</th>
+                <th>Patient</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Assigned Clinician</th>
+                <th>Priority</th>
+                <th>Started</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr class="@(item.Type == HUIOTClinicMS.Models.Enums.EncounterType.Emergency ? "table-danger" : "")">
+                        <td><strong>#@item.ID</strong></td>
+                        <td>
+                            <strong>@(item.Patient?.FirstName) @(item.Patient?.LastName)</strong>
+                            <div class="small text-muted">Card: @(item.Patient?.CardNumber ?? "—") | ID: @(item.Patient?.IDNumber ?? "—")</div>
+                        </td>
+                        <td>
+                            <span class="badge @(item.Type == HUIOTClinicMS.Models.Enums.EncounterType.Emergency ? "bg-danger" : "bg-secondary")">
+                                @item.Type
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge @(item.Status == HUIOTClinicMS.Models.Enums.WorkflowState.InEmergency ? "bg-danger" : item.Status == HUIOTClinicMS.Models.Enums.WorkflowState.Discharged ? "bg-success" : "bg-primary")">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td class="small">
+                            @if (item.AssignedToStaff != null)
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    @item.AssignedToStaff.FirstName @item.AssignedToStaff.LastName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25">
+                                    Unassigned
+                                </span>
+                            }
+                            @if (item.Status != HUIOTClinicMS.Models.Enums.WorkflowState.Discharged && (User.IsInRole("HealthOfficer") || User.IsInRole("Nurse")))
+                            {
+                                <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="PatientEncounter" asp-route-taskId="@item.ID" class="text-secondary ms-1" title="Reassign">
+                                    <i class="fa-solid fa-user-pen" style="font-size: 0.75rem;"></i>
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            @if (item.TriageAssessment != null)
+                            {
+                                <span class="badge @(item.TriageAssessment.PriorityLevel == "Emergency" ? "bg-danger" : item.TriageAssessment.PriorityLevel == "Urgent" ? "bg-warning text-dark" : "bg-info text-dark")">
+                                    @(item.TriageAssessment.PriorityLevel ?? "Routine")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td class="small">@item.StartTime.ToString("MMM dd, yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-folder-open me-1"></i> Open Chart
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        No clinical encounters found matching the criteria.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

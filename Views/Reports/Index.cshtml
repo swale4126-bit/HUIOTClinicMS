@@ -4,13 +4,110 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3">
-    <strong class="d-flex align-items-center text-dark fs-5">
-        <i class="fa-solid fa-chart-line text-primary me-2"></i> Reports Dashboard
-    </strong>
-    <div class="d-flex gap-2 flex-wrap">
-        <a asp-action="DailyReportPdf" class="btn btn-outline-primary btn-sm shadow-sm" target="_blank"><i class="fa-regular fa-file-pdf me-2"></i>Daily PDF</a>
-        <a asp-action="MonthlyReportPdf" class="btn btn-outline-primary btn-sm shadow-sm" target="_blank"><i class="fa-regular fa-file-pdf me-2"></i>Monthly PDF</a>
-        <button class="btn btn-primary btn-sm shadow-sm" onclick="downloadPDF()"><i class="fa-solid fa-download me-2"></i>Summary</button>
+    <div>
+        <h5 class="d-flex align-items-center text-dark fw-bold mb-1">
+            <i class="fa-solid fa-chart-line text-primary me-2"></i> Reports Dashboard
+        </h5>
+        <div class="text-muted small">Generate and export official clinic activity registers, statistics, and attendance summaries</div>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Start Date Picker -->
+        <div class="d-flex align-items-center bg-white border rounded px-2 py-1 shadow-sm">
+            <label for="reportStartDate" class="form-label mb-0 text-muted small fw-semibold me-2 text-nowrap">
+                <i class="fa-regular fa-calendar text-primary me-1"></i>Start Date:
+            </label>
+            <input type="date" id="reportStartDate" class="form-control form-control-sm border-0 p-0 shadow-none bg-transparent" style="width: 125px;" value="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" />
+        </div>
+
+        <!-- End Date Picker -->
+        <div class="d-flex align-items-center bg-white border rounded px-2 py-1 shadow-sm">
+            <label for="reportEndDate" class="form-label mb-0 text-muted small fw-semibold me-2 text-nowrap">
+                <i class="fa-regular fa-calendar text-primary me-1"></i>End Date:
+            </label>
+            <input type="date" id="reportEndDate" class="form-control form-control-sm border-0 p-0 shadow-none bg-transparent" style="width: 125px;" value="@(Model.EndDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" />
+        </div>
+
+        <!-- Consolidated Download Report Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-primary btn-sm dropdown-toggle shadow-sm d-flex align-items-center fw-semibold px-3 py-1" type="button" id="downloadReportDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-height: 33px;">
+                <i class="fa-solid fa-cloud-arrow-down me-2"></i> Download Report
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" aria-labelledby="downloadReportDropdown" style="min-width: 280px;">
+                <!-- Daily Category -->
+                <li class="dropdown-header text-uppercase fw-bold text-dark small px-3 pt-2 pb-1">
+                    <i class="fa-solid fa-calendar-day me-1 text-primary"></i> Daily Report
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("DailyReportPdf", "Reports")" data-base-url="@Url.Action("DailyReportPdf", "Reports")" target="_blank">
+                        <i class="fa-regular fa-file-pdf me-2 text-danger fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Daily PDF</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">View &amp; Print Official PDF Register</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("ExportDocx", "Reports", new { period = "daily" })" data-base-url="@Url.Action("ExportDocx", "Reports", new { period = "daily" })">
+                        <i class="fa-solid fa-file-word me-2 text-primary fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Daily DOCX</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">Download Microsoft Word Document</small>
+                        </div>
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider my-2"></li>
+
+                <!-- Monthly Category -->
+                <li class="dropdown-header text-uppercase fw-bold text-dark small px-3 pt-2 pb-1">
+                    <i class="fa-solid fa-calendar-days me-1 text-success"></i> Monthly Report
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("MonthlyReportPdf", "Reports")" data-base-url="@Url.Action("MonthlyReportPdf", "Reports")" target="_blank">
+                        <i class="fa-regular fa-file-pdf me-2 text-danger fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Monthly PDF</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">View &amp; Print Monthly PDF Register</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("ExportDocx", "Reports", new { period = "monthly" })" data-base-url="@Url.Action("ExportDocx", "Reports", new { period = "monthly" })">
+                        <i class="fa-solid fa-file-word me-2 text-primary fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Monthly DOCX</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">Download Microsoft Word Document</small>
+                        </div>
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider my-2"></li>
+
+                <!-- Annual Category -->
+                <li class="dropdown-header text-uppercase fw-bold text-dark small px-3 pt-2 pb-1">
+                    <i class="fa-solid fa-calendar me-1 text-warning"></i> Annual Report
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("AnnualReportPdf", "Reports")" data-base-url="@Url.Action("AnnualReportPdf", "Reports")" target="_blank">
+                        <i class="fa-regular fa-file-pdf me-2 text-danger fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Annual PDF</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">View &amp; Print Annual PDF Register</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center px-3 py-2 report-download-link" href="@Url.Action("ExportDocx", "Reports", new { period = "annual" })" data-base-url="@Url.Action("ExportDocx", "Reports", new { period = "annual" })">
+                        <i class="fa-solid fa-file-word me-2 text-primary fs-5"></i>
+                        <div>
+                            <div class="fw-semibold text-dark">Annual DOCX</div>
+                            <small class="text-muted d-block" style="font-size: 11px;">Download Microsoft Word Document</small>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -183,6 +280,60 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startInput = document.getElementById('reportStartDate');
+            const endInput = document.getElementById('reportEndDate');
+            const downloadLinks = document.querySelectorAll('.report-download-link');
+
+            function updateDownloadLinks() {
+                const startVal = startInput ? startInput.value : '';
+                const endVal = endInput ? endInput.value : '';
+
+                downloadLinks.forEach(function (link) {
+                    const baseUrl = link.getAttribute('data-base-url') || link.getAttribute('href');
+                    if (!baseUrl) return;
+
+                    const url = new URL(baseUrl, window.location.origin);
+                    if (startVal) {
+                        url.searchParams.set('startDate', startVal);
+                    } else {
+                        url.searchParams.delete('startDate');
+                    }
+                    if (endVal) {
+                        url.searchParams.set('endDate', endVal);
+                    } else {
+                        url.searchParams.delete('endDate');
+                    }
+                    link.href = url.pathname + url.search;
+                });
+            }
+
+            if (startInput) {
+                startInput.addEventListener('change', updateDownloadLinks);
+                startInput.addEventListener('input', updateDownloadLinks);
+            }
+            if (endInput) {
+                endInput.addEventListener('change', updateDownloadLinks);
+                endInput.addEventListener('input', updateDownloadLinks);
+            }
+
+            // Initialize link URLs with current picker values
+            updateDownloadLinks();
+
+            // Client-side validation: prevent clicking if Start Date > End Date
+            downloadLinks.forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    const startVal = startInput ? startInput.value : '';
+                    const endVal = endInput ? endInput.value : '';
+                    if (startVal && endVal && startVal > endVal) {
+                        e.preventDefault();
+                        alert('Start Date cannot be after End Date. Please select a valid date range.');
+                        return false;
+                    }
+                });
+            });
+        });
+
         function downloadPDF() {
             var element = document.getElementById('report-content');
             var opt = {

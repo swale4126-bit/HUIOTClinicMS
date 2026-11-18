@@ -1,4 +1,4 @@
-﻿namespace HUIOTClinicMS.Models
+namespace HUIOTClinicMS.Models
 {
     public class LabRequest
     {
@@ -17,5 +17,11 @@
         public string? ClinicalNotes { get; set; }
         public string Status { get; set; } = "Pending";
         public ICollection<TestType> TestTypes { get; set; } = new List<TestType>();
+        
+        public int? ClinicalEncounterID { get; set; }
+        public ClinicalEncounter? ClinicalEncounter { get; set; }
+
+        public int? AssignedToStaffID { get; set; }
+        public Staff? AssignedToStaff { get; set; }
     }
 }

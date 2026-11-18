@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using HUIOTClinicMS.Data;
+using HUIOTClinicMS.Models;
+using HUIOTClinicMS.Models.Enums;
 using HUIOTClinicMS.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,36 +13,46 @@ namespace HUIOTClinicMS.Controllers
     public class LabTechnicianController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public LabTechnicianController(ApplicationDbContext context)
+        public LabTechnicianController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool myTasks = false)
         {
             var today = DateTime.Today;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var myStaffId = currentUser?.StaffID;
 
-            var allRequests = await _context.LabRequests
+            var baseQuery = _context.LabRequests
                 .Include(l => l.Patient)
                 .Include(l => l.RequestedBy)
+                .Include(l => l.AssignedToStaff)
                 .Include(l => l.TestTypes)
-                .OrderByDescending(l => l.RequestDate)
-                .ToListAsync();
+                .OrderByDescending(l => l.RequestDate);
+
+            var allRequests = await baseQuery.ToListAsync();
+
+            var displayedRequests = (myTasks && myStaffId.HasValue)
+                ? allRequests.Where(l => l.AssignedToStaffID == myStaffId.Value).ToList()
+                : allRequests;
 
             var vm = new LabTechDashboardViewModel
             {
-                PendingRequests = allRequests.Count(l => l.Status == "Pending"),
-
-                // Approximation: no date field exists on LabResult yet, so we use
-                // LabRequest.RequestDate + Status as a stand-in for "completed today".
-                CompletedToday = allRequests.Count(l => l.Status == "Completed" && l.RequestDate.Date == today),
-
+                MyTasksOnly = myTasks,
+                AssignedToMePendingCount = myStaffId.HasValue 
+                    ? allRequests.Count(l => l.Status == LabRequestStatuses.Pending && l.AssignedToStaffID == myStaffId.Value) 
+                    : 0,
+                PendingRequests = displayedRequests.Count(l => l.Status == LabRequestStatuses.Pending),
+                CompletedToday = displayedRequests.Count(l => l.Status == LabRequestStatuses.Completed && l.RequestDate.Date == today),
                 TotalResults = await _context.LabResults.CountAsync(),
 
-                PendingLabRequests = allRequests.Where(l => l.Status == "Pending").ToList(),
-                InProgressLabRequests = allRequests.Where(l => l.Status == "In Progress").ToList(),
-                CompletedLabRequests = allRequests.Where(l => l.Status == "Completed").Take(50).ToList() // Limit to 50 for performance
+                PendingLabRequests = displayedRequests.Where(l => l.Status == LabRequestStatuses.Pending).ToList(),
+                InProgressLabRequests = displayedRequests.Where(l => l.Status == LabRequestStatuses.InProgress).ToList(),
+                CompletedLabRequests = displayedRequests.Where(l => l.Status == LabRequestStatuses.Completed).Take(50).ToList()
             };
 
             return View(vm);

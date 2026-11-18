@@ -2,77 +2,516 @@
 @{
     ViewData["Title"] = "Patient Details";
     var patient = Model.Patient;
+    var activeEncounter = Model.Encounters?.FirstOrDefault(e => e.Status != HUIOTClinicMS.Models.Enums.WorkflowState.Discharged && e.Status != HUIOTClinicMS.Models.Enums.WorkflowState.Transferred);
 }
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
 <div class="clinic-card mb-3">
-    <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
         <div>
-            <strong class="d-block fs-5">@patient.FirstName @patient.LastName</strong>
-            <span class="small text-muted">Card No. @patient.CardNumber</span>
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="mb-0">@patient.FirstName @patient.LastName</h4>
+                @if (patient.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inactive</span>
+                }
+            </div>
+            <span class="small text-muted">Card No: <strong>@(patient.CardNumber ?? "—")</strong> &bull; Student ID: <strong>@patient.IDNumber</strong></span>
         </div>
-        <div class="d-flex gap-2">
-            @if (patient.IsActive)
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Directory
+            </a>
+            @if (User.IsInRole("Nurse") || User.IsInRole("HealthOfficer"))
             {
-                <span class="badge badge-status-active align-self-center">Active</span>
+                <a asp-action="Handover" asp-route-id="@patient.ID" class="btn btn-primary btn-sm shadow-sm">
+                    <i class="fa-solid fa-people-arrows me-1"></i> Handover to Nurse
+                </a>
             }
-            else
-            {
-                <span class="badge badge-status-inactive align-self-center">Inactive</span>
-            }
-            <a asp-action="Edit" asp-route-id="@patient.ID" class="btn btn-outline-primary btn-sm">Edit</a>
         </div>
     </div>
 
-    <dl class="row mb-0">
-        <dt class="col-sm-3">University ID Number</dt>
-        <dd class="col-sm-9">@patient.IDNumber</dd>
-
-        <dt class="col-sm-3">Gender</dt>
-        <dd class="col-sm-9">@patient.Gender</dd>
-
-        <dt class="col-sm-3">Date of Birth</dt>
-        <dd class="col-sm-9">@patient.DateOfBirth.ToString("yyyy-MM-dd")</dd>
-
-        <dt class="col-sm-3">Phone</dt>
-        <dd class="col-sm-9">@(patient.PhoneNumber ?? "—")</dd>
-
-        <dt class="col-sm-3">Department</dt>
-        <dd class="col-sm-9">@(patient.Department?.DepartmentName ?? "—")</dd>
-
-        <dt class="col-sm-3">Dorm Block</dt>
-        <dd class="col-sm-9">@(patient.DormBlock?.BlockName ?? "—")</dd>
-
-        <dt class="col-sm-3">Registered</dt>
-        <dd class="col-sm-9">@patient.CreatedAt.ToString("yyyy-MM-dd")</dd>
-    </dl>
-</div>
-
-<div class="clinic-card">
-    <strong class="d-block mb-3">Emergency Contact</strong>
-    @if (Model.EmergencyContact != null)
+    @if (activeEncounter != null)
     {
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Name</dt>
-            <dd class="col-sm-9">@Model.EmergencyContact.ContactName</dd>
-
-            <dt class="col-sm-3">Phone</dt>
-            <dd class="col-sm-9">@Model.EmergencyContact.ContactPhoneNumber</dd>
-
-            <dt class="col-sm-3">Relationship</dt>
-            <dd class="col-sm-9">@(Model.EmergencyContact.Relationship ?? "—")</dd>
-        </dl>
+        <div class="alert alert-primary py-2 px-3 mb-3 small">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            Active Clinical Visit in Progress: <strong>Encounter #@activeEncounter.ID</strong> 
+            (@activeEncounter.Type, Status: <span class="badge bg-primary">@activeEncounter.Status</span>, Started: @activeEncounter.StartTime.ToString("HH:mm"))
+        </div>
     }
     else
     {
-        <p class="text-muted small mb-0">No emergency contact on file.</p>
+        <div class="alert alert-light border py-2 px-3 mb-3 small text-muted">
+            <i class="bi bi-info-circle text-primary me-2"></i>
+            <strong>Demographic Record On File:</strong> No active clinical encounter in progress.
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="text-muted text-uppercase small fw-bold mb-2">Demographic & Campus Data</h6>
+            <dl class="row mb-0 small">
+                <dt class="col-sm-4 text-muted">University ID</dt>
+                <dd class="col-sm-8 fw-semibold">@patient.IDNumber</dd>
+
+                <dt class="col-sm-4 text-muted">Gender / DOB</dt>
+                <dd class="col-sm-8">@patient.Gender &bull; @patient.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+
+                <dt class="col-sm-4 text-muted">Phone Number</dt>
+                <dd class="col-sm-8">@(patient.PhoneNumber ?? "—")</dd>
+
+                <dt class="col-sm-4 text-muted">Department</dt>
+                <dd class="col-sm-8">@(patient.Department?.DepartmentName ?? "—")</dd>
+
+                <dt class="col-sm-4 text-muted">Dormitory</dt>
+                <dd class="col-sm-8">@(patient.DormBlock?.BlockName ?? "—")</dd>
+
+                <dt class="col-sm-4 text-muted">Registered On</dt>
+                <dd class="col-sm-8">@patient.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+            </dl>
+        </div>
+        <div class="col-md-6 border-start-md">
+            <h6 class="text-muted text-uppercase small fw-bold mb-2">Emergency Contact</h6>
+            @if (Model.EmergencyContact != null)
+            {
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-4 text-muted">Contact Name</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.EmergencyContact.ContactName</dd>
+
+                    <dt class="col-sm-4 text-muted">Phone Number</dt>
+                    <dd class="col-sm-8">@Model.EmergencyContact.ContactPhoneNumber</dd>
+
+                    <dt class="col-sm-4 text-muted">Relationship</dt>
+                    <dd class="col-sm-8">@(Model.EmergencyContact.Relationship ?? "—")</dd>
+                </dl>
+            }
+            else
+            {
+                <p class="text-muted small mb-0 fst-italic">No emergency contact registered.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.HandoverHistory != null && Model.HandoverHistory.Any())
+{
+    <!-- NURSE HANDOVER HISTORY AUDIT TRAIL -->
+    <div class="clinic-card mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+            <div>
+                <h6 class="mb-0 text-dark fw-bold">
+                    <i class="fa-solid fa-people-arrows text-primary me-2"></i> Patient Handover & Routing History
+                </h6>
+                <span class="small text-muted">Audit trail of nurse-to-nurse handovers from Registration Desk to Triage</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Origin Nurse</th>
+                        <th>Destination Nurse</th>
+                        <th>Initiated By</th>
+                        <th>Handover Note / Routing Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var h in Model.HandoverHistory)
+                    {
+                        <tr class="small">
+                            <td>@h.AssignedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <i class="fa-solid fa-user-nurse text-muted me-1"></i>
+                                @(h.AssignedFromStaff != null ? $"{h.AssignedFromStaff.FirstName} {h.AssignedFromStaff.LastName}" : "Registration Desk")
+                            </td>
+                            <td>
+                                <strong class="text-primary">
+                                    <i class="fa-solid fa-user-nurse text-primary me-1"></i>
+                                    @(h.AssignedToStaff != null ? $"{h.AssignedToStaff.FirstName} {h.AssignedToStaff.LastName}" : "—")
+                                </strong>
+                            </td>
+                            <td>@(h.AssignedByUser != null ? h.AssignedByUser.FullName : "System")</td>
+                            <td class="text-muted">@(string.IsNullOrWhiteSpace(h.Reason) ? "—" : h.Reason)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<!-- CLINICAL ENCOUNTERS HISTORY (ES 7192:2025 Continuity of Care) -->
+<div class="clinic-card mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-clock-history text-primary"></i> Clinical Encounters & Visit History</h5>
+            <span class="small text-muted">Complete longitudinal health record across all clinic visits</span>
+        </div>
+    </div>
+
+    @if (Model.Encounters != null && Model.Encounters.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Triage & Vitals</th>
+                        <th>Clinical Notes & Diagnosis</th>
+                        <th>Orders & Rx</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var encounter in Model.Encounters)
+                    {
+                        var isEmergency = encounter.Type == HUIOTClinicMS.Models.Enums.EncounterType.Emergency;
+                        <tr class="@(isEmergency ? "table-danger bg-opacity-25" : "")">
+                            <td>
+                                <strong class="d-block small">@encounter.StartTime.ToString("yyyy-MM-dd")</strong>
+                                <span class="text-muted small">@encounter.StartTime.ToString("HH:mm")</span>
+                            </td>
+                            <td>
+                                @if (isEmergency)
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-lightning-charge"></i> STAT Emergency</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">Routine</span>
+                                }
+                            </td>
+                            <td>
+                                @{
+                                    var statusClass = encounter.Status switch
+                                    {
+                                        HUIOTClinicMS.Models.Enums.WorkflowState.Discharged => "bg-success",
+                                        HUIOTClinicMS.Models.Enums.WorkflowState.Transferred => "bg-danger",
+                                        HUIOTClinicMS.Models.Enums.WorkflowState.InEmergency => "bg-danger",
+                                        HUIOTClinicMS.Models.Enums.WorkflowState.WaitingPharmacy => "bg-warning text-dark",
+                                        HUIOTClinicMS.Models.Enums.WorkflowState.WaitingLab => "bg-info text-dark",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @statusClass">@encounter.Status</span>
+                            </td>
+                            <td>
+                                @if (encounter.TriageAssessment != null)
+                                {
+                                    var triage = encounter.TriageAssessment;
+                                    var priorityBadge = triage.PriorityLevel switch
+                                    {
+                                        "Emergency" => "bg-danger",
+                                        "Urgent" => "bg-warning text-dark",
+                                        _ => "bg-info text-dark"
+                                    };
+                                    <div>
+                                        <span class="badge @priorityBadge">@(triage.PriorityLevel ?? "Routine")</span>
+                                        <span class="small text-muted d-block mt-1">
+                                             @(triage.BloodPressure != null ? $"BP: {triage.BloodPressure} | " : "")
+                                             @(triage.HeartRate != null ? $"HR: {triage.HeartRate} bpm | " : "")
+                                             @(triage.Temperature != null ? $"T: {triage.Temperature}°C" : "")
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small fst-italic">Pending Triage</span>
+                                }
+                            </td>
+                            <td>
+                                @if (encounter.ClinicalNotes.Any())
+                                {
+                                    var latestNote = encounter.ClinicalNotes.OrderByDescending(n => n.DateTime).First();
+                                    <div class="small">
+                                        @if (!string.IsNullOrEmpty(latestNote.Diagnosis))
+                                        {
+                                            <strong>Dx:</strong> @latestNote.Diagnosis
+                                        }
+                                        else if (!string.IsNullOrEmpty(latestNote.ChiefComplaint))
+                                        {
+                                            <strong>CC:</strong> @latestNote.ChiefComplaint
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Clinical note recorded</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small fst-italic">No notes recorded yet</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <span class="badge bg-light text-dark border me-1">@encounter.LabRequests.Count Lab(s)</span>
+                                    <span class="badge bg-light text-dark border">@encounter.Prescriptions.Count Rx</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4 bg-light rounded">
+            <p class="text-muted mb-0">No clinical encounters recorded for this patient.</p>
+        </div>
     }
 </div>
 
+<!-- LABORATORY INVESTIGATIONS & RESULTS -->
+<div class="clinic-card mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-0"><i class="fa-solid fa-flask-vial text-info me-2"></i> Laboratory Investigations & Results</h5>
+            <span class="small text-muted">Complete diagnostic test orders and laboratory findings</span>
+        </div>
+        <span class="badge bg-info bg-opacity-10 text-dark border">@(Model.LabRequests?.Count ?? 0) Request(s)</span>
+    </div>
+
+    @if (Model.LabRequests != null && Model.LabRequests.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light small text-uppercase text-muted">
+                    <tr>
+                        <th>Request Date</th>
+                        <th>Requested Tests</th>
+                        <th>Ordered By</th>
+                        <th>Assigned Tech</th>
+                        <th>Status</th>
+                        <th>Lab Results / Findings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var req in Model.LabRequests)
+                    {
+                        var resultsForReq = Model.LabResults?.Where(r => r.MedicalRecordID == req.MedicalRecordID).ToList() ?? new List<HUIOTClinicMS.Models.LabResult>();
+                        <tr class="small">
+                            <td>
+                                <strong>@req.RequestDate.ToString("yyyy-MM-dd")</strong>
+                                <div class="text-muted">@req.RequestDate.ToString("HH:mm")</div>
+                            </td>
+                            <td>
+                                @if (req.TestTypes != null && req.TestTypes.Any())
+                                {
+                                    foreach (var tt in req.TestTypes)
+                                    {
+                                        <span class="badge bg-info bg-opacity-10 text-dark border me-1 mb-1">@tt.TestName</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>General Lab Test</span>
+                                }
+                            </td>
+                            <td>
+                                <i class="fa-solid fa-user-nurse text-muted me-1"></i>
+                                @(req.RequestedBy != null ? $"{req.RequestedBy.FirstName} {req.RequestedBy.LastName}" : "—")
+                            </td>
+                            <td>
+                                @(req.AssignedToStaff != null ? $"{req.AssignedToStaff.FirstName} {req.AssignedToStaff.LastName}" : "Any Available")
+                            </td>
+                            <td>
+                                @{
+                                    var stClass = req.Status switch {
+                                        "Completed" => "bg-success",
+                                        "InProgress" => "bg-warning text-dark",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @stClass">@req.Status</span>
+                            </td>
+                            <td>
+                                @if (resultsForReq.Any())
+                                {
+                                    foreach (var res in resultsForReq)
+                                    {
+                                        <div class="p-1 mb-1 bg-light rounded border">
+                                            <strong>@(res.TestType?.TestName ?? "Test"):</strong> 
+                                            <span class="text-primary fw-semibold">@res.Result</span>
+                                            @if (!string.IsNullOrEmpty(res.Remark))
+                                            {
+                                                <small class="text-muted ms-1 fst-italic">(@res.Remark)</small>
+                                            }
+                                            <div class="text-muted" style="font-size: 0.72rem;">
+                                                By @(res.ResultPerformedBy != null ? $"{res.ResultPerformedBy.FirstName} {res.ResultPerformedBy.LastName}" : "Lab")
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Pending results</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4 bg-light rounded text-muted small">
+            <i class="fa-solid fa-flask-vial fa-2x mb-2 text-secondary opacity-50"></i>
+            <div>No laboratory investigations recorded for this patient.</div>
+        </div>
+    }
+</div>
+
+<!-- PRESCRIPTIONS & PHARMACY HISTORY -->
+<div class="clinic-card mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-0"><i class="fa-solid fa-prescription-bottle-medical text-warning me-2"></i> Prescriptions & Pharmacy Dispensing History</h5>
+            <span class="small text-muted">Complete record of prescribed medications, dosages, and dispensing logs</span>
+        </div>
+        <span class="badge bg-warning bg-opacity-10 text-dark border">@(Model.Prescriptions?.Count ?? 0) Rx(s)</span>
+    </div>
+
+    @if (Model.Prescriptions != null && Model.Prescriptions.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light small text-uppercase text-muted">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Prescribed By</th>
+                        <th>Prescription (Rx) / Medication</th>
+                        <th>Dosage</th>
+                        <th>Status</th>
+                        <th>Dispensing Record</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var rx in Model.Prescriptions)
+                    {
+                        <tr class="small">
+                            <td>
+                                <strong>@rx.TimeDate.ToString("yyyy-MM-dd")</strong>
+                                <div class="text-muted">@rx.TimeDate.ToString("HH:mm")</div>
+                            </td>
+                            <td>
+                                <i class="fa-solid fa-user-doctor text-muted me-1"></i>
+                                @(rx.PrescribedBy != null ? $"{rx.PrescribedBy.FirstName} {rx.PrescribedBy.LastName}" : "—")
+                            </td>
+                            <td>
+                                <strong class="text-dark">@(!string.IsNullOrEmpty(rx.Medication?.MedicationName) ? rx.Medication.MedicationName : rx.RX)</strong>
+                                @if (!string.IsNullOrEmpty(rx.Medication?.MedicationType))
+                                {
+                                    <span class="badge bg-light text-muted border ms-1">@rx.Medication.MedicationType</span>
+                                }
+                            </td>
+                            <td>
+                                @(rx.Medication?.PrescribedDose ?? "As directed")
+                            </td>
+                            <td>
+                                @{
+                                    var rxStatusClass = rx.Status switch {
+                                        "Dispensed" => "bg-success",
+                                        "PartiallyDispensed" => "bg-info text-dark",
+                                        "Cancelled" => "bg-danger",
+                                        _ => "bg-warning text-dark"
+                                    };
+                                }
+                                <span class="badge @rxStatusClass">@rx.Status</span>
+                            </td>
+                            <td>
+                                @if (rx.Medication != null && (rx.Status == "Dispensed" || rx.Status == "PartiallyDispensed"))
+                                {
+                                    <div>
+                                        <span class="text-success fw-semibold"><i class="fa-solid fa-check me-1"></i>Dispensed: @(rx.Medication.DispensedQuantity?.ToString() ?? "Full")</span>
+                                        <div class="text-muted" style="font-size: 0.72rem;">
+                                            By @(rx.Medication.Pharmacist != null ? $"{rx.Medication.Pharmacist.FirstName} {rx.Medication.Pharmacist.LastName}" : "Pharmacy")
+                                            on @rx.Medication.DispensedDate.ToString("MM/dd HH:mm")
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Awaiting dispensing</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4 bg-light rounded text-muted small">
+            <i class="fa-solid fa-prescription-bottle-medical fa-2x mb-2 text-secondary opacity-50"></i>
+            <div>No prescriptions recorded for this patient.</div>
+        </div>
+    }
+</div>
+
+@if (Model.MedicalRecords != null && Model.MedicalRecords.Any())
+{
+    <!-- CONSULTATION & MEDICAL RECORDS -->
+    <div class="clinic-card mb-3">
+        <h6 class="text-primary mb-3"><i class="bi bi-journal-medical me-2"></i> Clinical Consultation Records</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Provider</th>
+                        <th>Chief Complaint</th>
+                        <th>Diagnosis</th>
+                        <th>Treatment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mr in Model.MedicalRecords)
+                    {
+                        <tr class="small">
+                            <td>@mr.DateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(mr.CreatedByStaff != null ? $"{mr.CreatedByStaff.FirstName} {mr.CreatedByStaff.LastName}" : (mr.CreatedBy ?? "—"))</td>
+                            <td>@(mr.ChiefComplaint ?? "—")</td>
+                            <td><strong>@(mr.Diagnosis ?? "—")</strong></td>
+                            <td>@(mr.Treatment ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
 <div class="mt-3">
-    <a asp-action="Index" class="text-decoration-none">&lsaquo; Back to Patient Records</a>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to Patient Directory</a>
 </div>

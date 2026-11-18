@@ -1,4 +1,4 @@
-﻿@model HUIOTClinicMS.ViewModels.MedicationDispenseViewModel
+@model HUIOTClinicMS.ViewModels.MedicationDispenseViewModel
 @{
     ViewData["Title"] = "Dispense Medication";
 }
@@ -40,9 +40,18 @@
                 <label asp-for="DispensedQuantity" class="form-label"></label>
                 <input asp-for="DispensedQuantity" type="number" class="form-control" />
             </div>
+            <div class="col-md-6">
+                <label asp-for="DispenseStatus" class="form-label fw-bold"></label>
+                <select asp-for="DispenseStatus" class="form-select">
+                    <option value="Dispensed">Full Dispensing (Complete)</option>
+                    <option value="PartiallyDispensed">Partial Dispensing (Stock Shortage / Remainder Pending)</option>
+                </select>
+                <span asp-validation-for="DispenseStatus" class="text-danger small"></span>
+            </div>
             <div class="col-12">
                 <label asp-for="Remark" class="form-label"></label>
-                <input asp-for="Remark" class="form-control" placeholder="Optional remarks" />
+                <input asp-for="Remark" class="form-control" placeholder="Counseling remarks or explanation for partial dispensing" />
+                <span asp-validation-for="Remark" class="text-danger small"></span>
             </div>
         </div>
     </div>

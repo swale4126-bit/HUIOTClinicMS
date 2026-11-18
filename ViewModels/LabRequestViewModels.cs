@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using HUIOTClinicMS.Models;
 
 namespace HUIOTClinicMS.ViewModels
@@ -7,8 +7,10 @@ namespace HUIOTClinicMS.ViewModels
     {
         [Required]
         public int MedicalRecordID { get; set; }
+        public int? EncounterID { get; set; }
         public int PatientID { get; set; }
         public string PatientDisplayName { get; set; } = string.Empty;
+        public bool IsStat { get; set; } = false;
 
         [Required(ErrorMessage = "Select at least one test.")]
         [MinLength(1, ErrorMessage = "Select at least one test.")]
@@ -21,6 +23,13 @@ namespace HUIOTClinicMS.ViewModels
         // Populated only when no MedicalRecordID was supplied via the route,
         // so the user can pick a patient's medical record directly on this page.
         public List<MedicalRecord> AvailableMedicalRecords { get; set; } = new();
+
+        /// <summary>Staff.ID of the Lab Technician this request is assigned to.</summary>
+        [Display(Name = "Assign to Lab Technician")]
+        public int? AssignedToStaffID { get; set; }
+
+        /// <summary>Active LabTechnician staff records for the assignment dropdown.</summary>
+        public List<Staff> AvailableLabTechs { get; set; } = new();
     }
 
     public class LabRequestEditViewModel

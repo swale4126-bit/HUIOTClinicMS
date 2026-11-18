@@ -1,0 +1,127 @@
+﻿--- Controller: DepartmentsController.cs ---
+
+    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Details(int? id)
+    public IActionResult Create()
+    public async Task<IActionResult> Create([Bind("ID,DepartmentName")] Department department)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int? id, [Bind("ID,DepartmentName")] Department department)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: DormBlocksController.cs ---
+    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Details(int? id)
+    public IActionResult Create()
+    public async Task<IActionResult> Create([Bind("ID,BlockName")] DormBlock dormblock)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int? id, [Bind("ID,BlockName")] DormBlock dormblock)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: EmergencyContactsController.cs ---
+    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Details(int? id)
+    public IActionResult Create()
+    public async Task<IActionResult> Create([Bind("ID,PatientID,Patient,ContactName,ContactPhoneNumber,Relationship")] 
+EmergencyContact emergencycontact)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int? id, 
+[Bind("ID,PatientID,Patient,ContactName,ContactPhoneNumber,Relationship")] EmergencyContact emergencycontact)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: HomeController.cs ---
+        public async Task<IActionResult> Index()
+        public IActionResult Privacy()
+        public IActionResult Terms()
+        public IActionResult Developers()
+--- Controller: LabRequestsController.cs ---
+    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Create(int? medicalRecordId)
+    public async Task<IActionResult> Create(LabRequestCreateViewModel vm)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int id, LabRequestEditViewModel vm)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int id)
+--- Controller: LabResultsController.cs ---
+    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Create(int? labRequestId)
+    public async Task<IActionResult> Create(HUIOTClinicMS.ViewModels.LabResultCreateViewModel vm)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int? id, 
+[Bind("ID,MedicalRecordID,MedicalRecord,TypeID,TestType,Result,ResultPerformedByID,ResultPerformedBy,Remark,Status")] 
+LabResult labresult)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: LabTechnicianController.cs ---
+        public async Task<IActionResult> Index()
+--- Controller: MedicalRecordsController.cs ---
+    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Create(int? patientId)
+    public async Task<IActionResult> Create(MedicalRecordCreateViewModel vm)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int id, MedicalRecordEditViewModel vm)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: MedicationsController.cs ---
+        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Details(int? id)
+--- Controller: NotificationsController.cs ---
+        public async Task<IActionResult> Index()
+        public async Task<IActionResult> MarkAllAsRead()
+        public async Task<IActionResult> ViewRecord(int id)
+--- Controller: NurseController.cs ---
+        public async Task<IActionResult> Index()
+--- Controller: PatientsController.cs ---
+    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(PatientCreateViewModel vm)
+    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int id, PatientEditViewModel vm)
+    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+--- Controller: PharmacistController.cs ---
+        public async Task<IActionResult> Index()
+--- Controller: PrescriptionsController.cs ---
+        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Create(int? labResultId)
+        public async Task<IActionResult> Create(PrescriptionCreateViewModel vm)
+        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id, PrescriptionEditViewModel vm)
+        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Dispense(int? id)
+        public async Task<IActionResult> Dispense(int id, MedicationDispenseViewModel vm)
+--- Controller: ProfileController.cs ---
+        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Edit()
+        public async Task<IActionResult> Edit(ProfileEditViewModel vm)
+        public async Task<IActionResult> UploadPhoto()
+        public async Task<IActionResult> UploadPhoto(IFormFile? photo)
+--- Controller: QueueController.cs ---
+        public async Task<IActionResult> Index(int? spId, string? queueType)
+        public async Task<IActionResult> CallNext(int servicePointId)
+        public async Task<IActionResult> StartService(int queueId, int servicePointId)
+        public async Task<IActionResult> CompleteService(int queueId, int servicePointId)
+        public async Task<IActionResult> CancelService(int queueId, int servicePointId)
+--- Controller: ReportsController.cs ---
+        public async Task<IActionResult> Index()
+        public async Task<IActionResult> DailyReportPdf()
+        public async Task<IActionResult> MonthlyReportPdf()
+--- Controller: SettingsController.cs ---
+        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Edit()
+        public async Task<IActionResult> Edit(SettingsViewModel vm)
+--- Controller: UserManagementController.cs ---
+        public async Task<IActionResult> Index(string? search)
+        public IActionResult Create()
+        public async Task<IActionResult> Create(UserCreateViewModel vm)
+        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string id, UserEditViewModel vm)
+        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
+
+

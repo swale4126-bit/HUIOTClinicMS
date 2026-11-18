@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using HUIOTClinicMS.Data;
+using HUIOTClinicMS.Models;
 using HUIOTClinicMS.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,31 +12,42 @@ namespace HUIOTClinicMS.Controllers
     public class PharmacistController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PharmacistController(ApplicationDbContext context)
+        public PharmacistController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool myTasks = false)
         {
             var today = DateTime.Today;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var myStaffId = currentUser?.StaffID;
+
+            var baseQuery = _context.Prescriptions
+                .Include(p => p.Patient)
+                .Include(p => p.PrescribedBy)
+                .Include(p => p.AssignedToStaff)
+                .OrderByDescending(p => p.TimeDate);
+
+            var allPrescriptions = await baseQuery.ToListAsync();
+
+            var displayedPrescriptions = (myTasks && myStaffId.HasValue)
+                ? allPrescriptions.Where(p => p.AssignedToStaffID == myStaffId.Value).ToList()
+                : allPrescriptions;
 
             var vm = new PharmacistDashboardViewModel
             {
-                PrescriptionsToday = await _context.Prescriptions
-                    .CountAsync(p => p.TimeDate.Date == today),
-
+                MyTasksOnly = myTasks,
+                AssignedToMePendingCount = myStaffId.HasValue
+                    ? allPrescriptions.Count(p => p.Status == "Pending" && p.AssignedToStaffID == myStaffId.Value)
+                    : 0,
+                PrescriptionsToday = displayedPrescriptions.Count(p => p.TimeDate.Date == today),
                 TotalMedicationsInRegistry = await _context.Medications.CountAsync(),
-
-                TotalPrescriptions = await _context.Prescriptions.CountAsync(),
-
-                RecentPrescriptions = await _context.Prescriptions
-                    .Include(p => p.Patient)
-                    .Include(p => p.PrescribedBy)
-                    .OrderByDescending(p => p.TimeDate)
-                    .Take(10)
-                    .ToListAsync()
+                TotalPrescriptions = displayedPrescriptions.Count,
+                RecentPrescriptions = displayedPrescriptions.Take(25).ToList()
             };
 
             return View(vm);

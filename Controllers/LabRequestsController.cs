@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HUIOTClinicMS.Models;
+using HUIOTClinicMS.Models.Enums;
 using HUIOTClinicMS.Data;
 using HUIOTClinicMS.ViewModels;
 
@@ -25,6 +26,7 @@ public class LabRequestsController : Controller
         var query = _context.LabRequests
             .Include(l => l.Patient)
             .Include(l => l.RequestedBy)
+            .Include(l => l.AssignedToStaff)
             .Include(l => l.TestTypes)
             .AsQueryable();
 
@@ -51,6 +53,7 @@ public class LabRequestsController : Controller
         var labrequest = await _context.LabRequests
             .Include(l => l.Patient)
             .Include(l => l.RequestedBy)
+            .Include(l => l.AssignedToStaff)
             .Include(l => l.MedicalRecord)
             .Include(l => l.TestTypes)
             .FirstOrDefaultAsync(m => m.LabRequestID == id);
@@ -60,24 +63,91 @@ public class LabRequestsController : Controller
         return View(labrequest);
     }
 
-    // GET: LABREQUESTS/Create?medicalRecordId=5
+    // GET: LABREQUESTS/Create?encounterId=5&medicalRecordId=5
     [Authorize(Roles = "Nurse,HealthOfficer")]
-    public async Task<IActionResult> Create(int? medicalRecordId)
+    public async Task<IActionResult> Create(int? encounterId, int? medicalRecordId)
     {
-        if (medicalRecordId == null) return NotFound();
+        MedicalRecord? record = null;
+        ClinicalEncounter? encounter = null;
 
-        var record = await _context.MedicalRecords
-            .Include(m => m.Patient)
-            .FirstOrDefaultAsync(m => m.ID == medicalRecordId);
+        if (encounterId.HasValue)
+        {
+            encounter = await _context.ClinicalEncounters
+                .Include(e => e.Patient)
+                .Include(e => e.ClinicalNotes)
+                .FirstOrDefaultAsync(e => e.ID == encounterId.Value);
+
+            if (encounter != null)
+            {
+                record = encounter.ClinicalNotes.OrderByDescending(n => n.CreatedAt).FirstOrDefault();
+                if (record == null)
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser?.StaffID == null)
+                    {
+                        TempData["ErrorMessage"] = "Your account is not linked to a Staff record. Please contact the Health Officer.";
+                        return RedirectToAction("Index", "Home");
+                    }
+
+                    record = new MedicalRecord
+                    {
+                        EncounterID = encounter.ID,
+                        PatientID = encounter.PatientID,
+                        ChiefComplaint = encounter.Type == EncounterType.Emergency ? "Emergency Diagnostic Evaluation" : "Diagnostic Evaluation",
+                        DateTime = DateTime.Now,
+                        CreatedByID = currentUser.StaffID.Value,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = currentUser.FullName ?? "Staff"
+                    };
+                    _context.MedicalRecords.Add(record);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        if (record == null && medicalRecordId.HasValue)
+        {
+            record = await _context.MedicalRecords
+                .Include(m => m.Patient)
+                .FirstOrDefaultAsync(m => m.ID == medicalRecordId.Value);
+
+            if (record != null && record.EncounterID.HasValue && encounter == null)
+            {
+                encounter = await _context.ClinicalEncounters.FindAsync(record.EncounterID.Value);
+            }
+        }
 
         if (record == null) return NotFound();
 
+        var patient = record.Patient ?? encounter?.Patient;
+
+        // Load active lab technician and health officer staff for the assignment dropdown
+        // User requirement: Strictly include only Solomon Girma and Sam in the assignment dropdown
+        var activeLabTechsRaw = await _context.Staffs
+            .Where(s => (s.Role == "LabTechnician" || s.Role == "HealthOfficer") && s.IsActive)
+            .OrderBy(s => s.Role).ThenBy(s => s.FirstName).ThenBy(s => s.LastName)
+            .ToListAsync();
+
+        var activeLabTechs = activeLabTechsRaw
+            .Where(s => (s.FirstName.Trim().Equals("Solomon", StringComparison.OrdinalIgnoreCase) && s.LastName.Trim().Equals("Girma", StringComparison.OrdinalIgnoreCase))
+                     || (s.FirstName.Trim().Equals("Girma", StringComparison.OrdinalIgnoreCase) && s.LastName.Trim().Equals("Solomon", StringComparison.OrdinalIgnoreCase))
+                     || s.FirstName.Trim().Equals("Sam", StringComparison.OrdinalIgnoreCase)
+                     || s.LastName.Trim().Equals("Sam", StringComparison.OrdinalIgnoreCase))
+            .GroupBy(s => s.Role == "HealthOfficer" ? "Solomon Girma" : "Sam")
+            .Select(g => g.First())
+            .OrderBy(s => s.Role)
+            .ThenBy(s => s.FirstName)
+            .ToList();
+
         var vm = new LabRequestCreateViewModel
         {
+            EncounterID = encounter?.ID,
             MedicalRecordID = record.ID,
             PatientID = record.PatientID,
-            PatientDisplayName = record.Patient != null ? $"{record.Patient.FirstName} {record.Patient.LastName}" : "—",
-            AvailableTestTypes = await _context.TestTypes.OrderBy(t => t.TestName).ToListAsync()
+            PatientDisplayName = patient != null ? $"{patient.FirstName} {patient.LastName} ({patient.CardNumber ?? patient.IDNumber})" : "—",
+            IsStat = encounter?.Type == EncounterType.Emergency,
+            AvailableTestTypes = await _context.TestTypes.OrderBy(t => t.TestName).ToListAsync(),
+            AvailableLabTechs = activeLabTechs
         };
 
         return View(vm);
@@ -96,18 +166,46 @@ public class LabRequestsController : Controller
                 "Your account isn't linked to a Staff record, so this request can't be attributed to you.");
         }
 
-        var isPatientInService = await _context.Queues
-            .Include(q => q.ServicePoint)
-            .AnyAsync(q => q.PatientID == vm.PatientID && q.QueueStatus == "InService" && q.ServicePoint != null && q.ServicePoint.Code == "CON");
-
-        if (!isPatientInService)
+        ClinicalEncounter? encounter = null;
+        if (vm.EncounterID.HasValue)
         {
-            ModelState.AddModelError(string.Empty, "Sorry, our patient ur queue is not arrived so please wait.");
+            encounter = await _context.ClinicalEncounters.FindAsync(vm.EncounterID.Value);
+        }
+
+        bool isEmergency = vm.IsStat || (encounter != null && (encounter.Type == EncounterType.Emergency || encounter.Status == WorkflowState.InEmergency));
+
+        if (!isEmergency && vm.PatientID != 0)
+        {
+            var isPatientInService = await _context.Queues
+                .Include(q => q.ServicePoint)
+                .AnyAsync(q => q.PatientID == vm.PatientID && (q.QueueStatus == "InService" || q.QueueStatus == "Called") && q.ServicePoint != null && q.ServicePoint.Code == "CON");
+
+            var hasActiveEncounter = encounter != null && encounter.Status != WorkflowState.Discharged;
+
+            if (!isPatientInService && !hasActiveEncounter)
+            {
+                ModelState.AddModelError(string.Empty, "Patient must be called into Consultation queue or have an active registered encounter.");
+            }
         }
 
         if (!ModelState.IsValid)
         {
             vm.AvailableTestTypes = await _context.TestTypes.OrderBy(t => t.TestName).ToListAsync();
+            var activeLabTechsRaw = await _context.Staffs
+                .Where(s => (s.Role == "LabTechnician" || s.Role == "HealthOfficer") && s.IsActive)
+                .OrderBy(s => s.Role).ThenBy(s => s.FirstName).ThenBy(s => s.LastName)
+                .ToListAsync();
+
+            vm.AvailableLabTechs = activeLabTechsRaw
+                .Where(s => (s.FirstName.Trim().Equals("Solomon", StringComparison.OrdinalIgnoreCase) && s.LastName.Trim().Equals("Girma", StringComparison.OrdinalIgnoreCase))
+                         || (s.FirstName.Trim().Equals("Girma", StringComparison.OrdinalIgnoreCase) && s.LastName.Trim().Equals("Solomon", StringComparison.OrdinalIgnoreCase))
+                         || s.FirstName.Trim().Equals("Sam", StringComparison.OrdinalIgnoreCase)
+                         || s.LastName.Trim().Equals("Sam", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(s => s.Role == "HealthOfficer" ? "Solomon Girma" : "Sam")
+                .Select(g => g.First())
+                .OrderBy(s => s.Role)
+                .ThenBy(s => s.FirstName)
+                .ToList();
             return View(vm);
         }
 
@@ -118,19 +216,60 @@ public class LabRequestsController : Controller
         var labRequest = new LabRequest
         {
             PatientID = vm.PatientID,
+            ClinicalEncounterID = vm.EncounterID,
             MedicalRecordID = vm.MedicalRecordID,
             RequestedByID = currentUser!.StaffID!.Value,
             RequestDate = DateTime.Now,
             ClinicalNotes = vm.ClinicalNotes,
-            Status = "Pending",
-            TestTypes = selectedTests
+            Status = LabRequestStatuses.Pending,
+            TestTypes = selectedTests,
+            AssignedToStaffID = vm.AssignedToStaffID
         };
 
         _context.LabRequests.Add(labRequest);
+
+        if (encounter != null && encounter.Status != WorkflowState.Discharged)
+        {
+            encounter.Status = WorkflowState.WaitingLab;
+        }
+
         await _context.SaveChangesAsync();
 
+        // Record assignment history if a lab tech was selected
+        if (vm.AssignedToStaffID.HasValue)
+        {
+            _context.TaskAssignmentHistories.Add(new TaskAssignmentHistory
+            {
+                TaskType = "LabRequest",
+                TaskID = labRequest.LabRequestID,
+                AssignedToStaffID = vm.AssignedToStaffID.Value,
+                AssignedByID = currentUser.Id,
+                AssignedAt = DateTime.UtcNow,
+                Reason = "Initial assignment at lab order creation"
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        // Close any active Triage or Consultation queues since patient is now directed to the Laboratory
+        var activeNurseQueues = await _context.Queues
+            .Include(q => q.ServicePoint)
+            .Where(q => q.PatientID == vm.PatientID 
+                     && q.ServicePoint != null && (q.ServicePoint.Code == "TRI" || q.ServicePoint.Code == "CON")
+                     && (q.QueueStatus == "InService" || q.QueueStatus == "Waiting" || q.QueueStatus == "Called"))
+            .ToListAsync();
+
+        foreach (var nq in activeNurseQueues)
+        {
+            nq.QueueStatus = "Completed";
+            var log = await _context.ServiceLogs.FirstOrDefaultAsync(l => l.QueueID == nq.ID);
+            if (log != null && log.ServiceEndedAt == null)
+            {
+                log.ServiceEndedAt = DateTime.Now;
+            }
+        }
+
         // Automatically create a Lab Queue ticket
-        var labServicePoint = await _context.ServicePoints.FirstOrDefaultAsync(s => s.Name.Contains("Laboratory") || s.Name.Contains("Lab"));
+        var labServicePoint = await _context.ServicePoints.FirstOrDefaultAsync(s => s.Code == "LAB" || s.Name.Contains("Laboratory") || s.Name.Contains("Lab"));
         if (labServicePoint != null)
         {
             var todaysLabQueuesCount = await _context.Queues
@@ -139,11 +278,12 @@ public class LabRequestsController : Controller
 
             var newQueue = new Queue
             {
-                TokenNumber = $"LAB-{todaysLabQueuesCount + 1:D3}",
+                TokenNumber = $"{labServicePoint.Code}-{todaysLabQueuesCount + 1:D3}",
                 PatientID = vm.PatientID,
                 ServicePointID = labServicePoint.ID,
-                PriorityLevel = "Normal",
+                PriorityLevel = isEmergency ? "Emergency" : "Normal",
                 QueueStatus = "Waiting",
+                QueueType = "Laboratory",
                 CreatedAt = DateTime.Now
             };
 
@@ -153,21 +293,51 @@ public class LabRequestsController : Controller
 
         // Fetch Patient details for notification
         var patient = await _context.Patients.FindAsync(vm.PatientID);
-        string patientInfo = patient != null ? $"{patient.FirstName} {patient.LastName} (Card No: {patient.CardNumber})" : "Unknown Patient";
+        string patientInfo = patient != null ? $"{patient.FirstName} {patient.LastName} (Card No: {patient.CardNumber ?? patient.IDNumber})" : "Unknown Patient";
+        string notifTitle = isEmergency ? "STAT EMERGENCY: Urgent Lab Order" : "New Lab Request";
+        string notifMessage = $"New laboratory request for {patientInfo} by {currentUser.FullName} ({selectedTests.Count} test(s)).";
 
-        // Notify Lab Technicians
-        var labTechs = await _userManager.GetUsersInRoleAsync("LabTechnician");
-        var labTechIds = labTechs.Select(t => t.Id).ToList();
-        
-        await _notificationService.CreateNotificationForUsersAsync(
-            labTechIds,
-            "New Lab Request",
-            $"New laboratory request created for {patientInfo}.",
-            "LabRequest",
-            labRequest.LabRequestID);
+        if (vm.AssignedToStaffID.HasValue)
+        {
+            // Notify the specific assigned lab tech
+            var assignedUser = await _context.Users.FirstOrDefaultAsync(u => u.StaffID == vm.AssignedToStaffID.Value);
+            if (assignedUser != null)
+            {
+                await _notificationService.CreateNotificationAsync(assignedUser.Id, notifTitle,
+                    $"You have been assigned a lab request: {notifMessage}", "LabRequest", labRequest.LabRequestID);
+            }
+        }
+        else
+        {
+            // No specific assignment — notify all active lab techs
+            var labTechs = await _userManager.GetUsersInRoleAsync("LabTechnician");
+            var labTechIds = labTechs.Select(t => t.Id).ToList();
+            await _notificationService.CreateNotificationForUsersAsync(labTechIds, notifTitle, notifMessage, "LabRequest", labRequest.LabRequestID);
+        }
 
-        TempData["SuccessMessage"] = "Lab request submitted successfully.";
-        return RedirectToAction(nameof(Details), new { id = labRequest.LabRequestID });
+        TempData["SuccessMessage"] = $"Lab request for {patientInfo} submitted successfully.";
+        return RedirectToAction(nameof(Confirmation), new { id = labRequest.LabRequestID });
+    }
+
+    // GET: LABREQUESTS/Confirmation/5
+    [Authorize(Roles = "Nurse,HealthOfficer,LabTechnician")]
+    public async Task<IActionResult> Confirmation(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var labRequest = await _context.LabRequests
+            .Include(l => l.Patient)
+                .ThenInclude(p => p.Department)
+            .Include(l => l.Patient)
+                .ThenInclude(p => p.DormBlock)
+            .Include(l => l.RequestedBy)
+            .Include(l => l.AssignedToStaff)
+            .Include(l => l.TestTypes)
+            .FirstOrDefaultAsync(l => l.LabRequestID == id);
+
+        if (labRequest == null) return NotFound();
+
+        return View(labRequest);
     }
 
     // GET: LABREQUESTS/Edit/5

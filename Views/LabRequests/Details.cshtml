@@ -22,6 +22,12 @@
         </div>
         <div class="d-flex gap-2">
             <span class="badge @badgeClass align-self-center">@Model.Status</span>
+            @if (Model.Status != "Completed")
+            {
+                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@Model.LabRequestID" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-flask-vial me-1"></i> Enter Results & Handover
+                </a>
+            }
             <a asp-action="Edit" asp-route-id="@Model.LabRequestID" class="btn btn-outline-primary btn-sm">Update Status</a>
         </div>
     </div>
@@ -35,6 +41,17 @@
 
         <dt class="col-sm-3">Requested By</dt>
         <dd class="col-sm-9">@(Model.RequestedBy != null ? $"{Model.RequestedBy.FirstName} {Model.RequestedBy.LastName}" : "—")</dd>
+
+        <dt class="col-sm-3">Assigned Lab Tech</dt>
+        <dd class="col-sm-9">
+            @(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "Unassigned (General Queue)")
+            @if (Model.Status != "Completed")
+            {
+                <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="LabRequest" asp-route-taskId="@Model.LabRequestID" class="btn btn-outline-secondary btn-sm ms-2 py-0 px-2" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-user-pen me-1"></i>Reassign
+                </a>
+            }
+        </dd>
 
         <dt class="col-sm-3">Related Medical Record</dt>
         <dd class="col-sm-9">

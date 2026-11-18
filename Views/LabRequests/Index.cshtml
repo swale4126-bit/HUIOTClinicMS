@@ -38,6 +38,7 @@
                     <tr>
                         <th class="fw-semibold py-2">Patient</th>
                         <th class="fw-semibold py-2">Tests</th>
+                        <th class="fw-semibold py-2">Assigned To</th>
                         <th class="fw-semibold py-2">Requested By</th>
                         <th class="fw-semibold py-2">Date</th>
                         <th class="fw-semibold py-2">Status</th>
@@ -59,6 +60,26 @@
                                 <div class="text-truncate text-secondary" style="max-width: 250px;" title="@(item.TestTypes.Any() ? string.Join(", ", item.TestTypes.Select(t => t.TestName)) : "—")">
                                     @(item.TestTypes.Any() ? string.Join(", ", item.TestTypes.Select(t => t.TestName)) : "—")
                                 </div>
+                            </td>
+                            <td class="small">
+                                @if (item.AssignedToStaff != null)
+                                {
+                                    <span class="badge bg-light text-dark border">
+                                        @item.AssignedToStaff.FirstName @item.AssignedToStaff.LastName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25">
+                                        Unassigned
+                                    </span>
+                                }
+                                @if (item.Status != "Completed")
+                                {
+                                    <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="LabRequest" asp-route-taskId="@item.LabRequestID" class="text-secondary ms-1" title="Reassign">
+                                        <i class="fa-solid fa-user-pen" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                }
                             </td>
                             <td class="small text-muted">@(item.RequestedBy != null ? $"{item.RequestedBy.FirstName} {item.RequestedBy.LastName}" : "—")</td>
                             <td class="small text-muted">@item.RequestDate.ToString("MMM dd, yyyy")</td>

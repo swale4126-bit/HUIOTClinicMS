@@ -100,6 +100,53 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HUIOTClinicMS.Models.ClinicalEncounter", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<int?>("AssignedToStaffID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssignedToStaffID");
+
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("ClinicalEncounters");
+                });
+
             modelBuilder.Entity("HUIOTClinicMS.Models.Department", b =>
                 {
                     b.Property<int>("ID")
@@ -171,6 +218,12 @@ namespace HUIOTClinicMS.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LabRequestID"));
 
+                    b.Property<int?>("AssignedToStaffID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClinicalEncounterID")
+                        .HasColumnType("int");
+
                     b.Property<string>("ClinicalNotes")
                         .HasColumnType("nvarchar(max)");
 
@@ -191,6 +244,10 @@ namespace HUIOTClinicMS.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("LabRequestID");
+
+                    b.HasIndex("AssignedToStaffID");
+
+                    b.HasIndex("ClinicalEncounterID");
 
                     b.HasIndex("MedicalRecordID");
 
@@ -250,6 +307,12 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.Property<string>("ChiefComplaint")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CreatedByID")
                         .HasColumnType("int");
 
@@ -258,6 +321,9 @@ namespace HUIOTClinicMS.Data.Migrations
 
                     b.Property<string>("Diagnosis")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EncounterID")
+                        .HasColumnType("int");
 
                     b.Property<string>("GeneralAppearance")
                         .HasColumnType("nvarchar(max)");
@@ -271,9 +337,17 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.Property<string>("Treatment")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("ID");
 
                     b.HasIndex("CreatedByID");
+
+                    b.HasIndex("EncounterID");
 
                     b.HasIndex("PatientID");
 
@@ -430,7 +504,13 @@ namespace HUIOTClinicMS.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionID"));
 
-                    b.Property<int>("LabResultID")
+                    b.Property<int?>("AssignedToStaffID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClinicalEncounterID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LabResultID")
                         .HasColumnType("int");
 
                     b.Property<int>("PatientID")
@@ -451,6 +531,10 @@ namespace HUIOTClinicMS.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("PrescriptionID");
+
+                    b.HasIndex("AssignedToStaffID");
+
+                    b.HasIndex("ClinicalEncounterID");
 
                     b.HasIndex("LabResultID");
 
@@ -505,6 +589,51 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasIndex("ServicePointID");
 
                     b.ToTable("Queues");
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.ReferralRecord", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("ClinicalSummary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationFacility")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EncounterID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonForTransfer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransferredBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EncounterID")
+                        .IsUnique();
+
+                    b.ToTable("ReferralRecords");
                 });
 
             modelBuilder.Entity("HUIOTClinicMS.Models.ServiceLog", b =>
@@ -581,6 +710,9 @@ namespace HUIOTClinicMS.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -595,6 +727,50 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Staffs");
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.TaskAssignmentHistory", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssignedByID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("AssignedFromStaffID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AssignedToStaffID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("TaskID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TaskType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssignedByID");
+
+                    b.HasIndex("AssignedFromStaffID");
+
+                    b.HasIndex("AssignedToStaffID");
+
+                    b.ToTable("TaskAssignmentHistories");
                 });
 
             modelBuilder.Entity("HUIOTClinicMS.Models.TestType", b =>
@@ -612,6 +788,55 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("TestTypes");
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.TriageAssessment", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("BloodPressure")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EncounterID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PriorityLevel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Temperature")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Weight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EncounterID")
+                        .IsUnique();
+
+                    b.ToTable("TriageAssessments");
                 });
 
             modelBuilder.Entity("LabRequestTestTypes", b =>
@@ -766,6 +991,24 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("HUIOTClinicMS.Models.ClinicalEncounter", b =>
+                {
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "AssignedToStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedToStaffID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HUIOTClinicMS.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedToStaff");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("HUIOTClinicMS.Models.EmergencyContact", b =>
                 {
                     b.HasOne("HUIOTClinicMS.Models.Patient", "Patient")
@@ -779,6 +1022,15 @@ namespace HUIOTClinicMS.Data.Migrations
 
             modelBuilder.Entity("HUIOTClinicMS.Models.LabRequest", b =>
                 {
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "AssignedToStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedToStaffID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HUIOTClinicMS.Models.ClinicalEncounter", "ClinicalEncounter")
+                        .WithMany("LabRequests")
+                        .HasForeignKey("ClinicalEncounterID");
+
                     b.HasOne("HUIOTClinicMS.Models.MedicalRecord", "MedicalRecord")
                         .WithMany("LabRequests")
                         .HasForeignKey("MedicalRecordID")
@@ -788,14 +1040,18 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasOne("HUIOTClinicMS.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("HUIOTClinicMS.Models.Staff", "RequestedBy")
                         .WithMany()
                         .HasForeignKey("RequestedByID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AssignedToStaff");
+
+                    b.Navigation("ClinicalEncounter");
 
                     b.Navigation("MedicalRecord");
 
@@ -815,7 +1071,7 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasOne("HUIOTClinicMS.Models.Staff", "ResultPerformedBy")
                         .WithMany()
                         .HasForeignKey("ResultPerformedByID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("HUIOTClinicMS.Models.TestType", "TestType")
@@ -833,11 +1089,15 @@ namespace HUIOTClinicMS.Data.Migrations
 
             modelBuilder.Entity("HUIOTClinicMS.Models.MedicalRecord", b =>
                 {
-                    b.HasOne("HUIOTClinicMS.Models.Staff", "CreatedBy")
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "CreatedByStaff")
                         .WithMany()
                         .HasForeignKey("CreatedByID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("HUIOTClinicMS.Models.ClinicalEncounter", "Encounter")
+                        .WithMany("ClinicalNotes")
+                        .HasForeignKey("EncounterID");
 
                     b.HasOne("HUIOTClinicMS.Models.Patient", "Patient")
                         .WithMany()
@@ -845,7 +1105,9 @@ namespace HUIOTClinicMS.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("CreatedByStaff");
+
+                    b.Navigation("Encounter");
 
                     b.Navigation("Patient");
                 });
@@ -855,7 +1117,7 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasOne("HUIOTClinicMS.Models.Staff", "Pharmacist")
                         .WithMany()
                         .HasForeignKey("PharmacistID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("HUIOTClinicMS.Models.Prescription", "Prescription")
@@ -901,11 +1163,19 @@ namespace HUIOTClinicMS.Data.Migrations
 
             modelBuilder.Entity("HUIOTClinicMS.Models.Prescription", b =>
                 {
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "AssignedToStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedToStaffID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HUIOTClinicMS.Models.ClinicalEncounter", "ClinicalEncounter")
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("ClinicalEncounterID");
+
                     b.HasOne("HUIOTClinicMS.Models.LabResult", "LabResult")
                         .WithMany()
                         .HasForeignKey("LabResultID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HUIOTClinicMS.Models.Patient", "Patient")
                         .WithMany()
@@ -916,8 +1186,12 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.HasOne("HUIOTClinicMS.Models.Staff", "PrescribedBy")
                         .WithMany()
                         .HasForeignKey("PrescribedByID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AssignedToStaff");
+
+                    b.Navigation("ClinicalEncounter");
 
                     b.Navigation("LabResult");
 
@@ -945,6 +1219,17 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.Navigation("ServicePoint");
                 });
 
+            modelBuilder.Entity("HUIOTClinicMS.Models.ReferralRecord", b =>
+                {
+                    b.HasOne("HUIOTClinicMS.Models.ClinicalEncounter", "Encounter")
+                        .WithOne("ReferralRecord")
+                        .HasForeignKey("HUIOTClinicMS.Models.ReferralRecord", "EncounterID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Encounter");
+                });
+
             modelBuilder.Entity("HUIOTClinicMS.Models.ServiceLog", b =>
                 {
                     b.HasOne("HUIOTClinicMS.Models.Queue", "Queue")
@@ -960,6 +1245,43 @@ namespace HUIOTClinicMS.Data.Migrations
                     b.Navigation("Queue");
 
                     b.Navigation("ServedBy");
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.TaskAssignmentHistory", b =>
+                {
+                    b.HasOne("HUIOTClinicMS.Data.ApplicationUser", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "AssignedFromStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedFromStaffID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HUIOTClinicMS.Models.Staff", "AssignedToStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedToStaffID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("AssignedFromStaff");
+
+                    b.Navigation("AssignedToStaff");
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.TriageAssessment", b =>
+                {
+                    b.HasOne("HUIOTClinicMS.Models.ClinicalEncounter", "Encounter")
+                        .WithOne("TriageAssessment")
+                        .HasForeignKey("HUIOTClinicMS.Models.TriageAssessment", "EncounterID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Encounter");
                 });
 
             modelBuilder.Entity("LabRequestTestTypes", b =>
@@ -1028,6 +1350,19 @@ namespace HUIOTClinicMS.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HUIOTClinicMS.Models.ClinicalEncounter", b =>
+                {
+                    b.Navigation("ClinicalNotes");
+
+                    b.Navigation("LabRequests");
+
+                    b.Navigation("Prescriptions");
+
+                    b.Navigation("ReferralRecord");
+
+                    b.Navigation("TriageAssessment");
                 });
 
             modelBuilder.Entity("HUIOTClinicMS.Models.MedicalRecord", b =>

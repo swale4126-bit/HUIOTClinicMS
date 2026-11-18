@@ -8,6 +8,7 @@
 <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
 <form asp-action="Create" method="post">
+    <input type="hidden" asp-for="EncounterID" />
 
     <div class="clinic-card mb-3">
         <strong class="d-block mb-3">Patient</strong>
@@ -15,15 +16,22 @@
         @if (!string.IsNullOrEmpty(Model.PatientDisplayName))
         {
             <input type="hidden" asp-for="PatientID" />
-            <input class="form-control" value="@Model.PatientDisplayName" disabled />
+            <input class="form-control mb-2" value="@Model.PatientDisplayName" disabled />
         }
         else
         {
             <label asp-for="PatientID" class="form-label">Select Patient</label>
-            <select asp-for="PatientID" class="form-select" asp-items="ViewBag.Patients">
+            <select asp-for="PatientID" class="form-select mb-2" asp-items="ViewBag.Patients">
                 <option value="">Select patient</option>
             </select>
             <span asp-validation-for="PatientID" class="text-danger small"></span>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.VitalsSummary))
+        {
+            <div class="alert alert-info py-2 mb-0">
+                <i class="fa-solid fa-heart-pulse me-1"></i> <strong>Triage Vitals:</strong> @Model.VitalsSummary
+            </div>
         }
     </div>
 
@@ -62,6 +70,13 @@
         <button type="submit" class="btn btn-primary">
             <i class="fa-solid fa-file-medical me-1"></i> Save Medical Record
         </button>
-        <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+        @if (Model.EncounterID.HasValue)
+        {
+            <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID.Value" class="btn btn-outline-secondary">Cancel</a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+        }
     </div>
 </form>

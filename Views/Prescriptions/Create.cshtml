@@ -9,31 +9,64 @@
 
 <form asp-action="Create" method="post">
     <input type="hidden" asp-for="LabResultID" />
+    <input type="hidden" asp-for="EncounterID" />
     <input type="hidden" asp-for="PatientID" />
 
     <div class="clinic-card mb-3">
         <strong class="d-block mb-2">Patient</strong>
         <input class="form-control mb-3" value="@Model.PatientDisplayName" disabled />
 
-        <strong class="d-block mb-2">Lab Result Used</strong>
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Test Type</dt>
-            <dd class="col-sm-9">@Model.TestTypeName</dd>
-            <dt class="col-sm-3">Result</dt>
-            <dd class="col-sm-9">@Model.LabResultSummary</dd>
-        </dl>
+        @if (Model.LabResultID.HasValue)
+        {
+            <strong class="d-block mb-2">Laboratory Diagnostic Reference</strong>
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Test Type</dt>
+                <dd class="col-sm-9">@Model.TestTypeName</dd>
+                <dt class="col-sm-3">Result</dt>
+                <dd class="col-sm-9">@Model.LabResultSummary</dd>
+            </dl>
+        }
+        else if (!string.IsNullOrEmpty(Model.ClinicalNotesSummary))
+        {
+            <strong class="d-block mb-2">Clinical Indication</strong>
+            <p class="text-muted mb-0"><i class="fa-solid fa-notes-medical me-1"></i> @Model.ClinicalNotesSummary</p>
+        }
+        else
+        {
+            <p class="text-muted small mb-0"><i class="fa-solid fa-info-circle me-1"></i> Direct clinical prescription (No laboratory testing required).</p>
+        }
     </div>
 
     <div class="clinic-card mb-3">
-        <strong class="d-block mb-2">Prescription</strong>
-        <textarea asp-for="RX" class="form-control" rows="3" placeholder="e.g. Amoxicillin 500mg TID x 7 days"></textarea>
+        <strong class="d-block mb-2">Prescription Directives (Rx)</strong>
+        <textarea asp-for="RX" class="form-control" rows="3" placeholder="e.g. Amoxicillin 500mg PO TID for 7 days&#10;Paracetamol 500mg PO PRN"></textarea>
         <span asp-validation-for="RX" class="text-danger small"></span>
+    </div>
+
+    <div class="clinic-card mb-3">
+        <label asp-for="AssignedToStaffID" class="form-label fw-bold">Assign to Pharmacist <span class="text-danger">*</span></label>
+        <select asp-for="AssignedToStaffID" class="form-select">
+            <option value="">-- Select a Pharmacist (Required) --</option>
+            @foreach (var p in Model.AvailablePharmacists)
+            {
+                <option value="@p.ID">@p.LastName, @p.FirstName (@p.Role)</option>
+            }
+        </select>
+        <span asp-validation-for="AssignedToStaffID" class="text-danger small"></span>
+        <div class="form-text text-muted small">Select an active pharmacist to notify and assign this prescription directly for dispensing.</div>
     </div>
 
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-prescription-bottle-medical me-1"></i> Create Prescription
+            <i class="fa-solid fa-prescription-bottle-medical me-1"></i> Issue Prescription
         </button>
-        <a asp-controller="Nurse" asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+        @if (Model.EncounterID.HasValue)
+        {
+            <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID.Value" class="btn btn-outline-secondary">Cancel</a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        }
     </div>
 </form>

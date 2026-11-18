@@ -16,7 +16,9 @@
 
         <aside class="auth-brand-panel">
             <div class="auth-brand-top">
-                <div class="auth-brand-badge"><i class="fa-solid fa-stethoscope"></i></div>
+                <div class="auth-brand-badge shadow-sm">
+                    <img src="~/images/hu-logo.png" alt="Hawassa University" style="width: 36px; height: 36px; object-fit: contain;" />
+                </div>
                 <div>
                     <strong class="auth-brand-name">HU IoT Clinic</strong>
                     <span class="auth-brand-sub">Hawassa University</span>
@@ -24,21 +26,15 @@
             </div>
 
             <div class="auth-brand-mid">
-                <h1 class="auth-brand-headline">Care, <em>connected</em>.</h1>
+                <h1 class="auth-brand-headline">Care, <em>connected.</em></h1>
                 <p class="auth-brand-copy">
-                    One system for patient records, lab results, and prescriptions
-                    across every clinic role — from registration to pharmacy.
+                    One system for patient records, lab results, and prescriptions across every clinic role &mdash; from registration to pharmacy.
                 </p>
 
-                <div class="ecg-wrap" aria-hidden="true">
-                    <div class="ecg-track">
-                        <svg viewBox="0 0 300 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M0,30 H70 L85,8 L100,52 L115,18 L130,30 H300 L315,8 L330,52 L345,18 L360,30" />
-                        </svg>
-                        <svg viewBox="0 0 300 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M0,30 H70 L85,8 L100,52 L115,18 L130,30 H300 L315,8 L330,52 L345,18 L360,30" />
-                        </svg>
-                    </div>
+                <div class="auth-ecg-line">
+                    <svg viewBox="0 0 320 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,24 H80 L92,8 L104,40 L116,16 L128,24 H320" />
+                    </svg>
                 </div>
 
                 <ul class="auth-feature-list">
@@ -46,10 +42,6 @@
                     <li><i class="fa-solid fa-check"></i> Real-time lab &amp; pharmacy status</li>
                     <li><i class="fa-solid fa-check"></i> Secure, role-based access</li>
                 </ul>
-            </div>
-
-            <div class="auth-brand-footer">
-                &copy; @DateTime.Now.Year Hawassa University &mdash; IoT Student Clinic
             </div>
         </aside>
 
@@ -61,6 +53,7 @@
 
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

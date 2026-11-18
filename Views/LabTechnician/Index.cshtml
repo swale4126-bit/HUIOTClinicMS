@@ -34,10 +34,18 @@
 </div>
 
 <div class="clinic-card border-0 shadow-sm mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3 flex-wrap gap-2">
         <strong class="d-flex align-items-center text-dark fs-5">
             <i class="fa-solid fa-flask text-warning me-2"></i> Pending Lab Requests
         </strong>
+        <div class="btn-group btn-group-sm shadow-sm" role="group">
+            <a asp-action="Index" asp-route-myTasks="false" class="btn @(!Model.MyTasksOnly ? "btn-primary" : "btn-outline-primary")">
+                All Orders
+            </a>
+            <a asp-action="Index" asp-route-myTasks="true" class="btn @(Model.MyTasksOnly ? "btn-primary" : "btn-outline-primary")">
+                Assigned to Me (@Model.AssignedToMePendingCount)
+            </a>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-sm align-middle mb-0">
@@ -45,7 +53,7 @@
                 <tr>
                     <th class="fw-semibold py-2">Patient</th>
                     <th class="fw-semibold py-2">Test Type(s)</th>
-                    <th class="fw-semibold py-2">Notes</th>
+                    <th class="fw-semibold py-2">Assigned To</th>
                     <th class="fw-semibold py-2">Requested By</th>
                     <th class="fw-semibold py-2">Date</th>
                     <th class="fw-semibold py-2">Status</th>
@@ -60,7 +68,23 @@
                         <td class="small fw-semibold text-secondary py-2">
                             @(request.TestTypes != null && request.TestTypes.Any() ? string.Join(", ", request.TestTypes.Select(t => t.TestName)) : "—")
                         </td>
-                        <td class="small text-muted py-2 text-truncate" style="max-width:150px;" title="@request.ClinicalNotes">@(request.ClinicalNotes ?? "—")</td>
+                        <td class="small py-2">
+                            @if (request.AssignedToStaff != null)
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    @request.AssignedToStaff.FirstName @request.AssignedToStaff.LastName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25">
+                                    Unassigned
+                                </span>
+                            }
+                            <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="LabRequest" asp-route-taskId="@request.LabRequestID" class="text-secondary ms-1" title="Reassign">
+                                <i class="fa-solid fa-user-pen" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </td>
                         <td class="small text-muted py-2">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
                         <td class="small text-muted py-2">@request.RequestDate.ToString("yyyy-MM-dd")</td>
                         <td class="py-2"><span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Pending</span></td>
@@ -69,8 +93,8 @@
                                 <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border" title="View Request">
                                     <i class="fa-regular fa-eye"></i>
                                 </a>
-                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-light btn-sm text-primary border" title="Enter Results">
-                                    <i class="fa-solid fa-pen-to-square"></i>
+                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-primary btn-sm fw-semibold" title="Enter Results & Handover">
+                                    <i class="fa-solid fa-flask-vial me-1"></i> Enter Results
                                 </a>
                             </div>
                         </td>
@@ -117,8 +141,8 @@
                                 <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border" title="View Request">
                                     <i class="fa-regular fa-eye"></i>
                                 </a>
-                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-light btn-sm text-primary border" title="Enter Results">
-                                    <i class="fa-solid fa-pen-to-square"></i>
+                                <a asp-controller="LabResults" asp-action="Create" asp-route-labRequestId="@request.LabRequestID" class="btn btn-primary btn-sm fw-semibold" title="Enter Results & Handover">
+                                    <i class="fa-solid fa-flask-vial me-1"></i> Enter Results
                                 </a>
                             </div>
                         </td>
@@ -144,7 +168,7 @@
             <thead class="table-light text-muted small text-uppercase">
                 <tr>
                     <th class="fw-semibold py-2">Patient</th>
-                    <th class="fw-semibold py-2">Notes</th>
+                    <th class="fw-semibold py-2">Test Type(s)</th>
                     <th class="fw-semibold py-2">Requested By</th>
                     <th class="fw-semibold py-2">Date</th>
                     <th class="fw-semibold py-2">Status</th>
@@ -156,13 +180,15 @@
                 {
                     <tr>
                         <td class="fw-medium text-dark py-2">@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "—")</td>
-                        <td class="small text-muted py-2 text-truncate" style="max-width:150px;" title="@request.ClinicalNotes">@(request.ClinicalNotes ?? "—")</td>
+                        <td class="small fw-semibold text-secondary py-2">
+                            @(request.TestTypes != null && request.TestTypes.Any() ? string.Join(", ", request.TestTypes.Select(t => t.TestName)) : "—")
+                        </td>
                         <td class="small text-muted py-2">@(request.RequestedBy != null ? $"{request.RequestedBy.FirstName} {request.RequestedBy.LastName}" : "—")</td>
                         <td class="small text-muted py-2">@request.RequestDate.ToString("yyyy-MM-dd")</td>
                         <td class="py-2"><span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> Completed</span></td>
                         <td class="text-end py-2">
-                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border shadow-sm" title="View Request">
-                                <i class="fa-regular fa-eye"></i>
+                            <a asp-controller="LabRequests" asp-action="Details" asp-route-id="@request.LabRequestID" class="btn btn-light btn-sm text-info border shadow-sm" title="View Request & Results">
+                                <i class="fa-regular fa-eye me-1"></i> View Order
                             </a>
                         </td>
                     </tr>

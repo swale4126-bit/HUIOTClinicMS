@@ -8,6 +8,7 @@ namespace HUIOTClinicMS.Services
     public interface INotificationService
     {
         Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null);
+        Task CreateDirectNotificationAsync(string userId, string title, string message, string type, int? relatedId = null);
         Task CreateNotificationForUsersAsync(IEnumerable<string> userIds, string title, string message, string type, int? relatedId = null);
         Task<List<Notification>> GetUnreadNotificationsAsync(string userId);
         Task MarkAsReadAsync(int notificationId);
@@ -28,6 +29,21 @@ namespace HUIOTClinicMS.Services
         public async Task CreateNotificationAsync(string userId, string title, string message, string type, int? relatedId = null)
         {
             await CreateNotificationForUsersAsync(new[] { userId }, title, message, type, relatedId);
+        }
+
+        public async Task CreateDirectNotificationAsync(string userId, string title, string message, string type, int? relatedId = null)
+        {
+            var notification = new Notification
+            {
+                UserID = userId,
+                Title = title,
+                Message = message,
+                NotificationType = type,
+                RelatedRecordID = relatedId,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
         }
 
         public async Task CreateNotificationForUsersAsync(IEnumerable<string> userIds, string title, string message, string type, int? relatedId = null)

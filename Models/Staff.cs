@@ -1,4 +1,4 @@
-﻿namespace HUIOTClinicMS.Models
+namespace HUIOTClinicMS.Models
 {
     public class Staff
     {
@@ -7,5 +7,6 @@
         public string LastName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

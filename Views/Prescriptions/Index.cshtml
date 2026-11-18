@@ -32,6 +32,7 @@
                 <tr>
                     <th class="fw-semibold py-2">Patient</th>
                     <th class="fw-semibold py-2">Rx Details</th>
+                    <th class="fw-semibold py-2">Assigned To</th>
                     <th class="fw-semibold py-2">Prescriber</th>
                     <th class="fw-semibold py-2">Date</th>
                     <th class="fw-semibold py-2">Status</th>
@@ -41,13 +42,37 @@
             <tbody class="border-top-0 text-nowrap">
                 @foreach (var item in Model)
                 {
-                    var badgeClass = item.Status == "Dispensed" ? "bg-success bg-opacity-10 text-success border border-success border-opacity-25" : "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25";
+                    var badgeClass = item.Status == "Dispensed" 
+                        ? "bg-success bg-opacity-10 text-success border border-success border-opacity-25" 
+                        : item.Status == "PartiallyDispensed" 
+                            ? "bg-info bg-opacity-10 text-info border border-info border-opacity-25" 
+                            : "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25";
                     <tr>
                         <td class="fw-medium">@(item.Patient != null ? $"{item.Patient.FirstName} {item.Patient.LastName}" : "—")</td>
                         <td>
                             <div class="text-truncate text-secondary small" style="max-width: 300px;" title="@item.RX">
                                 @item.RX
                             </div>
+                        </td>
+                        <td class="small">
+                            @if (item.AssignedToStaff != null)
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    @item.AssignedToStaff.FirstName @item.AssignedToStaff.LastName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25">
+                                    Unassigned
+                                </span>
+                            }
+                            @if (item.Status != "Dispensed")
+                            {
+                                <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="Prescription" asp-route-taskId="@item.PrescriptionID" class="text-secondary ms-1" title="Reassign">
+                                    <i class="fa-solid fa-user-pen" style="font-size: 0.75rem;"></i>
+                                </a>
+                            }
                         </td>
                         <td class="small text-muted">@(item.PrescribedBy != null ? $"{item.PrescribedBy.FirstName} {item.PrescribedBy.LastName}" : "—")</td>
                         <td class="small text-muted">@item.TimeDate.ToString("MMM dd, yyyy")</td>
@@ -57,7 +82,7 @@
                                 <a asp-action="Details" asp-route-id="@item.PrescriptionID" class="btn btn-light btn-sm text-info border" title="View Prescription">
                                     <i class="fa-regular fa-eye"></i>
                                 </a>
-                                @if (User.IsInRole("Pharmacist") && item.Status == "Pending")
+                                @if (User.IsInRole("Pharmacist") && (item.Status == "Pending" || item.Status == "PartiallyDispensed"))
                                 {
                                     <a asp-action="Dispense" asp-route-id="@item.PrescriptionID" class="btn btn-primary btn-sm border-primary" title="Dispense Medication">
                                         <i class="fa-solid fa-pills"></i> Dispense

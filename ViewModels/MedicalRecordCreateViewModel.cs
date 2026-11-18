@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace HUIOTClinicMS.ViewModels
 {
@@ -7,8 +7,11 @@ namespace HUIOTClinicMS.ViewModels
         [Required]
         public int PatientID { get; set; }
 
-        // Display-only, populated when patient is pre-selected (e.g. from Nurse queue)
+        public int? EncounterID { get; set; }
+
+        // Display-only, populated when patient is pre-selected
         public string? PatientDisplayName { get; set; }
+        public string? VitalsSummary { get; set; }
 
         [Required]
         [Display(Name = "Chief Complaint")]

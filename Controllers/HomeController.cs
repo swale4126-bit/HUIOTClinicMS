@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using HUIOTClinicMS.Data;
+using HUIOTClinicMS.Models.Enums;
 using HUIOTClinicMS.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,13 +29,13 @@ namespace HUIOTClinicMS.Controllers
                     .CountAsync(m => m.DateTime.Date == today),
 
                 PendingLabRequests = await _context.LabRequests
-                    .CountAsync(l => l.Status == "Pending"),
+                    .CountAsync(l => l.Status == LabRequestStatuses.Pending),
 
                 ActiveStaff = await _context.Staffs.CountAsync(),
 
                 RecentMedicalRecords = await _context.MedicalRecords
                     .Include(m => m.Patient)
-                    .Include(m => m.CreatedBy)
+                    .Include(m => m.CreatedByStaff)
                     .OrderByDescending(m => m.DateTime)
                     .Take(5)
                     .ToListAsync(),

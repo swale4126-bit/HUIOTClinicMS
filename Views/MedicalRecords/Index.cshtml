@@ -55,7 +55,7 @@
                                 @(item.Diagnosis ?? "—")
                             </div>
                         </td>
-                        <td class="small text-muted">@(item.CreatedBy != null ? $"{item.CreatedBy.FirstName} {item.CreatedBy.LastName}" : "—")</td>
+                        <td class="small text-muted">@(item.CreatedByStaff != null ? $"{item.CreatedByStaff.FirstName} {item.CreatedByStaff.LastName}" : "—")</td>
                         <td class="text-end">
                             <a asp-action="Details" asp-route-id="@item.ID" class="btn btn-light btn-sm text-info border shadow-sm" title="View Record">
                                 <i class="fa-regular fa-eye"></i>

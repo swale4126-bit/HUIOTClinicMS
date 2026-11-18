@@ -1,0 +1,150 @@
+@model HUIOTClinicMS.ViewModels.ReassignTaskViewModel
+@{
+    ViewData["Title"] = "Task Assignment & Reassignment";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-0">Task Assignment & Reassignment</h4>
+                <p class="text-muted small mb-0">Re-route clinical responsibilities with non-repudiable audit trails</p>
+            </div>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Task & Patient Summary Card -->
+        <div class="clinic-card mb-4">
+            <h6 class="border-bottom pb-2 mb-3 text-secondary">
+                <i class="fa-solid fa-clipboard-list me-2"></i>Task Context
+            </h6>
+            <div class="row g-2">
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Task Classification</span>
+                    <strong>@Model.TaskType</strong> — @Model.TaskTitle
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Patient</span>
+                    <strong>@Model.PatientName</strong>
+                </div>
+                <div class="col-sm-6 mt-2">
+                    <span class="text-muted small d-block">Current Assignee</span>
+                    <span class="badge @(Model.CurrentAssignedStaffID.HasValue ? "bg-info text-dark" : "bg-warning text-dark")">
+                        @(Model.CurrentAssignedStaffName)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reassignment Form -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title text-primary mb-3">
+                    <i class="fa-solid fa-user-pen me-2"></i>Select New Assignee
+                </h5>
+
+                <form asp-action="Reassign" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <input type="hidden" asp-for="TaskType" />
+                    <input type="hidden" asp-for="TaskID" />
+                    <input type="hidden" asp-for="TaskTitle" />
+                    <input type="hidden" asp-for="PatientName" />
+                    <input type="hidden" asp-for="CurrentAssignedStaffID" />
+                    <input type="hidden" asp-for="CurrentAssignedStaffName" />
+
+                    <div class="mb-3">
+                        <label asp-for="NewAssignedStaffID" class="form-label fw-bold"></label>
+                        <select asp-for="NewAssignedStaffID" class="form-select">
+                            <option value="">-- Choose Eligible Healthcare Professional --</option>
+                            @foreach (var staff in Model.EligibleStaff)
+                            {
+                                <option value="@staff.ID">
+                                    @staff.LastName, @staff.FirstName (@staff.Role)
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="NewAssignedStaffID" class="text-danger small"></span>
+                        <div class="form-text text-muted small">
+                            Only currently active staff accounts authorized for this clinical task type appear in this list.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Reason" class="form-label fw-bold"></label>
+                        <textarea asp-for="Reason" class="form-control" rows="3" placeholder="State reason (e.g., Clinician off-shift, workload rebalance, urgent escalation)..."></textarea>
+                        <span asp-validation-for="Reason" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold px-4">
+                            <i class="fa-solid fa-check me-1"></i> Confirm Reassignment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assignment History Trail -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 text-secondary">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Assignment Audit Trail (ES 7192:2025)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.History.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Timestamp (UTC)</th>
+                                    <th>Previous Assignee</th>
+                                    <th>New Assignee</th>
+                                    <th>Assigned By</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var h in Model.History)
+                                {
+                                    <tr>
+                                        <td>@h.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            @(h.AssignedFromStaff != null ? $"{h.AssignedFromStaff.FirstName} {h.AssignedFromStaff.LastName}" : "Unassigned")
+                                        </td>
+                                        <td>
+                                            <strong class="text-primary">
+                                                @(h.AssignedToStaff != null ? $"{h.AssignedToStaff.FirstName} {h.AssignedToStaff.LastName}" : "—")
+                                            </strong>
+                                        </td>
+                                        <td>@(h.AssignedByUser?.FullName ?? h.AssignedByID)</td>
+                                        <td class="text-muted">@(h.Reason ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted p-3 mb-0 small">No prior reassignment events recorded for this task.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

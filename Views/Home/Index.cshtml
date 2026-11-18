@@ -80,7 +80,7 @@
                                         @(record.Diagnosis ?? "—")
                                     </div>
                                 </td>
-                                <td class="small text-end">@(record.CreatedBy != null ? $"{record.CreatedBy.FirstName} {record.CreatedBy.LastName}" : "—")</td>
+                                <td class="small text-end">@(record.CreatedByStaff != null ? $"{record.CreatedByStaff.FirstName} {record.CreatedByStaff.LastName}" : "—")</td>
                             </tr>
                         }
                         @if (!Model.RecentMedicalRecords.Any())

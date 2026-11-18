@@ -15,7 +15,7 @@
         <div class="row g-3">
             <div class="col-md-6">
                 <label asp-for="IDNumber" class="form-label"></label>
-                <input asp-for="IDNumber" class="form-control" />
+                <input asp-for="IDNumber" class="form-control" placeholder="e.g. NaScR/1245/16" pattern="^([a-zA-Z]{1,10}/\d{1,6}/\d{2,4}|\d{3,8}|TEST-[a-zA-Z0-9-]+)$" title="Format: Letters/Number/Year (e.g., NaScR/1245/16)" />
                 <span asp-validation-for="IDNumber" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
@@ -24,12 +24,12 @@
             </div>
             <div class="col-md-6">
                 <label asp-for="FirstName" class="form-label"></label>
-                <input asp-for="FirstName" class="form-control" />
+                <input asp-for="FirstName" class="form-control" placeholder="First name (letters only)" pattern="^[a-zA-Z\s'-]+$" title="Only letters, spaces, hyphens, and apostrophes allowed (no numbers)" />
                 <span asp-validation-for="FirstName" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="LastName" class="form-label"></label>
-                <input asp-for="LastName" class="form-control" />
+                <input asp-for="LastName" class="form-control" placeholder="Last name (letters only)" pattern="^[a-zA-Z\s'-]+$" title="Only letters, spaces, hyphens, and apostrophes allowed (no numbers)" />
                 <span asp-validation-for="LastName" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
@@ -42,12 +42,12 @@
             </div>
             <div class="col-md-6">
                 <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                <input asp-for="DateOfBirth" type="date" class="form-control" max="@DateTime.Today.AddYears(-15).ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="PhoneNumber" class="form-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" />
+                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 0912345678" pattern="^(\+251|0)[79][0-9\s-]{8,12}$" title="Valid Ethiopian phone number (no letters allowed)" />
                 <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
             </div>
             <div class="col-md-6 d-flex align-items-end">
@@ -76,7 +76,7 @@
     </div>
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <a asp-action="Details" asp-route-id="@Model.ID" class="btn btn-outline-primary">Cancel</a>
+        <button type="submit" class="btn btn-primary shadow-sm"><i class="fa-solid fa-floppy-disk me-1"></i> Save Changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Cancel</a>
     </div>
 </form>

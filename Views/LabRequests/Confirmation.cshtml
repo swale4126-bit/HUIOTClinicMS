@@ -1,0 +1,131 @@
+@model HUIOTClinicMS.Models.LabRequest
+@{
+    ViewData["Title"] = "Lab Request Confirmation";
+    var isEmergency = Model.Status == "Emergency" || Model.ClinicalNotes?.Contains("STAT") == true;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        @if (isEmergency)
+        {
+            <div class="alert alert-danger border-danger shadow-sm mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="fs-1 text-danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-heading mb-1 text-danger fw-bold">
+                            <i class="fa-solid fa-bolt me-1"></i> STAT Emergency Lab Request Dispatched
+                        </h4>
+                        <p class="mb-0 small fw-semibold">
+                            Urgent priority alerts have been dispatched to Laboratory Technician <strong>@(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "On-Duty Lab Team")</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success border-success shadow-sm mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="fs-1 text-success">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-heading mb-1 text-success fw-bold">Laboratory Request Dispatched Successfully</h4>
+                        <p class="mb-0 small text-muted">
+                            Assigned to Lab Technician <strong>@(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "On-Duty Lab Team")</strong>. Patient is directed to Laboratory.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Request Details Card -->
+        <div class="clinic-card border-0 shadow-sm mb-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                <h5 class="mb-0 text-dark fw-bold">
+                    <i class="fa-solid fa-flask-vial text-primary me-2"></i> Laboratory Order #@Model.LabRequestID
+                </h5>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                    <i class="fa-solid fa-circle-check me-1"></i> Queue Completed & Dispatched
+                </span>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="bg-light rounded p-3 mb-3 border">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <span class="text-muted small d-block">Patient Name</span>
+                        <h5 class="mb-0 text-primary fw-bold">@(Model.Patient != null ? $"{Model.Patient.FirstName} {Model.Patient.LastName}" : "—")</h5>
+                        <div class="small text-muted mt-1">
+                            <span>ID: <strong>@(Model.Patient?.IDNumber ?? "—")</strong></span> &bull;
+                            <span>Card No: <strong>@(Model.Patient?.CardNumber ?? "—")</strong></span> &bull;
+                            <span>Dept: @(Model.Patient?.Department?.DepartmentName ?? "—")</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                            <i class="fa-solid fa-calendar me-1"></i> @Model.RequestDate.ToString("yyyy-MM-dd HH:mm")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Laboratory & Clinical Details -->
+            <div class="row g-3 my-1 small">
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Assigned Lab Technician</span>
+                    <strong class="text-dark">
+                        <i class="fa-solid fa-user-doctor text-primary me-1"></i>
+                        @(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "On-Duty Lab Technician")
+                    </strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Ordering Clinician</span>
+                    <span class="text-secondary">
+                        <i class="fa-solid fa-user-nurse text-muted me-1"></i>
+                        @(Model.RequestedBy != null ? $"{Model.RequestedBy.FirstName} {Model.RequestedBy.LastName}" : "Triage Nurse")
+                    </span>
+                </div>
+                <div class="col-12">
+                    <span class="text-muted d-block mb-1">Ordered Test(s)</span>
+                    <div class="d-flex flex-wrap gap-1">
+                        @if (Model.TestTypes != null && Model.TestTypes.Any())
+                        {
+                            @foreach (var t in Model.TestTypes)
+                            {
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                                    <i class="fa-solid fa-vial me-1"></i> @t.TestName
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">Routine diagnostic panel</span>
+                        }
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ClinicalNotes))
+                {
+                    <div class="col-12">
+                        <span class="text-muted d-block">Clinical Indications / Notes</span>
+                        <div class="p-2 bg-light rounded border text-secondary fst-italic">
+                            @Model.ClinicalNotes
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Action Links: Back to Queue & Dashboard -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+            <a asp-controller="Queue" asp-action="Index" asp-route-queueType="Triage" class="btn btn-primary px-4 py-2 shadow-sm fw-semibold">
+                <i class="fa-solid fa-users-line me-2"></i> Back to Queue
+            </a>
+            <a asp-controller="Nurse" asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                <i class="fa-solid fa-table-columns me-2"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>

@@ -12,7 +12,11 @@ namespace HUIOTClinicMS
 
             var connectionString = builder.Configuration.GetConnectionString("ClinicConnection") ?? throw new InvalidOperationException("Connection string 'ClinicConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                    sqlOptions.CommandTimeout(60);
+                }));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
@@ -21,6 +25,7 @@ namespace HUIOTClinicMS
 
             builder.Services.AddScoped<HUIOTClinicMS.Services.INotificationService, HUIOTClinicMS.Services.NotificationService>();
             builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, HUIOTClinicMS.Services.EmailSender>();
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddControllersWithViews();
 
@@ -30,6 +35,11 @@ namespace HUIOTClinicMS
             {
                 await SeedData.InitializeAsync(scope.ServiceProvider);
 
+                if (args.Contains("--verify-rbac"))
+                {
+                    var exitCode = await HUIOTClinicMS.Services.RbacVerificationRunner.RunAsync(scope.ServiceProvider);
+                    Environment.Exit(exitCode);
+                }
             }
 
             if (app.Environment.IsDevelopment())

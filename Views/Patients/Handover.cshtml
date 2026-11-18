@@ -1,0 +1,128 @@
+@model HUIOTClinicMS.ViewModels.PatientHandoverViewModel
+@{
+    ViewData["Title"] = "Patient Handover to Triage Nurse";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-0 text-dark fw-bold">
+                    <i class="fa-solid fa-people-arrows text-primary me-2"></i>Patient Nurse Handover
+                </h4>
+                <p class="text-muted small mb-0">Hand over registered student to the destination triage nurse on duty</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                &larr; Patient Records
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Verified Patient Identification Summary Card -->
+        <div class="clinic-card border-0 shadow-sm mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                <strong class="text-dark small text-uppercase">
+                    <i class="fa-solid fa-id-card text-success me-1"></i> Verified Student Identity
+                </strong>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                    <i class="fa-solid fa-check-circle me-1"></i> Identity Confirmed
+                </span>
+            </div>
+            <div class="row g-2 small">
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Student Name</span>
+                    <strong class="fs-6 text-dark">@Model.PatientName</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Clinic Card Number</span>
+                    <strong class="fs-6 text-primary">@(Model.CardNumber ?? "—")</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">University ID Number</span>
+                    <span class="fw-semibold">@Model.IDNumber</span>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Department & Dormitory</span>
+                    <span>@(Model.DepartmentName ?? "—") &bull; @(Model.DormBlockName ?? "—")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Handover Form -->
+        <div class="clinic-card border-0 shadow-sm mb-4">
+            <div class="border-bottom pb-2 mb-3">
+                <h6 class="mb-0 text-dark fw-bold">
+                    <i class="fa-solid fa-clipboard-user text-primary me-2"></i>Select Destination Nurse & Service Point
+                </h6>
+                <span class="text-muted small">The assigned destination nurse will receive immediate handover notification and assume clinical intake responsibility.</span>
+            </div>
+
+            <form asp-action="Handover" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="PatientID" />
+                <input type="hidden" asp-for="PatientName" />
+                <input type="hidden" asp-for="IDNumber" />
+                <input type="hidden" asp-for="CardNumber" />
+                <input type="hidden" asp-for="DepartmentName" />
+                <input type="hidden" asp-for="DormBlockName" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Registration Nurse (Handover Origin)</label>
+                    <input type="text" class="form-control form-control-sm bg-light" value="@Model.RegistrationNurseName" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DestinationNurseStaffID" class="form-label small fw-bold text-dark">
+                        Destination Triage Nurse <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="DestinationNurseStaffID" class="form-select" asp-items="Model.EligibleNurses">
+                        <option value="">-- Select Active Destination Nurse on Duty --</option>
+                    </select>
+                    <span asp-validation-for="DestinationNurseStaffID" class="text-danger small"></span>
+                    <small class="form-text text-muted">
+                        Only currently active and eligible nurses are listed.
+                    </small>
+                </div>
+
+                <div class="mb-3 p-3 rounded border border-danger-subtle bg-danger-subtle bg-opacity-25">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" asp-for="IsEmergency" id="isEmergencySwitch" />
+                        <label class="form-check-label fw-bold text-danger" for="isEmergencySwitch">
+                            <i class="fa-solid fa-bolt me-1"></i> Flag as STAT Emergency Handover
+                        </label>
+                    </div>
+                    <small class="form-text text-muted d-block mt-1">
+                        Check this box if the student is in acute distress or requires urgent care. This triggers immediate priority alerts to the destination nurse and on-duty Health Officers.
+                    </small>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="HandoverNote" class="form-label small fw-semibold text-dark">
+                        Administrative Handover Note (Optional)
+                    </label>
+                    <textarea asp-for="HandoverNote" class="form-control" rows="3" placeholder="e.g. Walk-in student reporting headache and fever since yesterday; directed to triage."></textarea>
+                    <span asp-validation-for="HandoverNote" class="text-danger small"></span>
+                    <small class="form-text text-muted">Enter administrative or routing observations. Do not record formal clinical diagnoses here.</small>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Confirm & Send Handover
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                        Cancel / Return to Records
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

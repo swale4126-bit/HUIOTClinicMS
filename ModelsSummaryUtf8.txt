@@ -1,0 +1,141 @@
+﻿--- Model: Department.cs ---
+
+        public int ID { get; set; }
+        public string DepartmentName { get; set; } = string.Empty;
+--- Model: DormBlock.cs ---
+        public int ID { get; set; }
+        public string BlockName { get; set; } = string.Empty;
+--- Model: EmergencyContact.cs ---
+        public int ID { get; set; }
+        public int PatientID { get; set; }
+        public Patient? Patient { get; set; }
+        public string ContactName { get; set; } = string.Empty;
+        public string ContactPhoneNumber { get; set; } = string.Empty;
+        public string? Relationship { get; set; }
+--- Model: ErrorViewModel.cs ---
+        public string? RequestId { get; set; }
+--- Model: LabRequest.cs ---
+        public int LabRequestID { get; set; }
+        public int PatientID { get; set; }
+        public Patient? Patient { get; set; }
+        public int MedicalRecordID { get; set; }
+        public MedicalRecord? MedicalRecord { get; set; }
+        public int RequestedByID { get; set; }
+        public Staff? RequestedBy { get; set; }
+        public DateTime RequestDate { get; set; }
+        public string? ClinicalNotes { get; set; }
+        public string Status { get; set; } = "Pending";
+        public ICollection<TestType> TestTypes { get; set; } = new List<TestType>();
+--- Model: LabResult.cs ---
+        public int ID { get; set; }
+        public int MedicalRecordID { get; set; }
+        public MedicalRecord? MedicalRecord { get; set; }
+        public int TypeID { get; set; }
+        public TestType? TestType { get; set; }
+        public string? Result { get; set; }
+        public int ResultPerformedByID { get; set; }
+        public Staff? ResultPerformedBy { get; set; }
+        public string? Remark { get; set; }
+        public string Status { get; set; } = "Completed";
+--- Model: MedicalRecord.cs ---
+        public int ID { get; set; }
+        public int PatientID { get; set; }
+        public Patient? Patient { get; set; }
+        public string? ChiefComplaint { get; set; }
+        public string? GeneralAppearance { get; set; }
+        public string? Diagnosis { get; set; }
+        public string? Treatment { get; set; }
+        public string? Notes { get; set; }
+        public DateTime DateTime { get; set; }
+        public int CreatedByID { get; set; }
+        public Staff? CreatedBy { get; set; }
+        public ICollection<LabRequest>? LabRequests { get; set; }
+        public ICollection<LabResult>? LabResults { get; set; }
+--- Model: Medication.cs ---
+        public int MedicationID { get; set; }
+        public int PrescriptionID { get; set; }
+        public Prescription? Prescription { get; set; }
+        public string MedicationName { get; set; } = string.Empty;
+        public string? MedicationType { get; set; }
+        public string? PrescribedDose { get; set; }
+        public decimal? Amount { get; set; }
+        public int? DispensedQuantity { get; set; }
+        public int PharmacistID { get; set; }
+        public Staff? Pharmacist { get; set; }
+        public string? Remark { get; set; }
+        public DateTime DispensedDate { get; set; } = DateTime.Now;
+--- Model: Notification.cs ---
+        public int ID { get; set; }
+        public string UserID { get; set; } = string.Empty;
+        public ApplicationUser? User { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string NotificationType { get; set; } = "System";
+        public int? RelatedRecordID { get; set; }
+        public bool IsRead { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+--- Model: Patient.cs ---
+        public int ID { get; set; }
+        public string IDNumber { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
+        public int DepartmentID { get; set; }
+        public Department? Department { get; set; }
+        public int DormBlockID { get; set; }
+        public DormBlock? DormBlock { get; set; }
+        public string? PhoneNumber { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string? CardNumber { get; set; }
+--- Model: Prescription.cs ---
+        public int PrescriptionID { get; set; }
+        public int PatientID { get; set; }
+        public Patient? Patient { get; set; }
+        public int LabResultID { get; set; }
+        public LabResult? LabResult { get; set; }
+        public string RX { get; set; } = string.Empty;
+        public int PrescribedByID { get; set; }
+        public Staff? PrescribedBy { get; set; }
+        public DateTime TimeDate { get; set; }
+        public string Status { get; set; } = "Pending"; // Pending | Dispensed
+        public Medication? Medication { get; set; }
+--- Model: Queue.cs ---
+        public int ID { get; set; }
+        public string TokenNumber { get; set; } = string.Empty;
+        public int PatientID { get; set; }
+        public Patient? Patient { get; set; }
+        public int ServicePointID { get; set; }
+        public ServicePoint? ServicePoint { get; set; }
+        public string PriorityLevel { get; set; } = "Normal";
+        public string QueueStatus { get; set; } = "Waiting";
+        public string QueueType { get; set; } = "Consultation";
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+--- Model: ServiceLog.cs ---
+        public int ID { get; set; }
+        public int QueueID { get; set; }
+        public Queue? Queue { get; set; }
+        public string? ServedByID { get; set; }
+        public ApplicationUser? ServedBy { get; set; }
+        public DateTime? CalledAt { get; set; }
+        public DateTime? ServiceStartedAt { get; set; }
+        public DateTime? ServiceEndedAt { get; set; }
+--- Model: ServicePoint.cs ---
+        public int ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public string? RoomNumber { get; set; }
+        public bool IsActive { get; set; } = true;
+--- Model: Staff.cs ---
+        public int ID { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+--- Model: TestType.cs ---
+        public int ID { get; set; }
+        public string TestName { get; set; } = string.Empty;
+        public ICollection<LabRequest> LabRequests { get; set; } = new List<LabRequest>();
+
+

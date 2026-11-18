@@ -34,11 +34,21 @@
 </div>
 
 <div class="clinic-card border-0 shadow-sm mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3 flex-wrap gap-2">
         <strong class="d-flex align-items-center text-dark fs-5">
             <i class="fa-solid fa-prescription text-primary me-2"></i> Recent Prescriptions
         </strong>
-        <a asp-controller="Prescriptions" asp-action="Index" class="btn btn-outline-primary btn-sm shadow-sm">View All &rsaquo;</a>
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group btn-group-sm shadow-sm" role="group">
+                <a asp-action="Index" asp-route-myTasks="false" class="btn @(!Model.MyTasksOnly ? "btn-primary" : "btn-outline-primary")">
+                    All Prescriptions
+                </a>
+                <a asp-action="Index" asp-route-myTasks="true" class="btn @(Model.MyTasksOnly ? "btn-primary" : "btn-outline-primary")">
+                    Assigned to Me (@Model.AssignedToMePendingCount)
+                </a>
+            </div>
+            <a asp-controller="Prescriptions" asp-action="Index" class="btn btn-outline-secondary btn-sm shadow-sm">View All &rsaquo;</a>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-sm align-middle mb-0">
@@ -46,6 +56,7 @@
                 <tr>
                     <th class="fw-semibold py-2">Patient</th>
                     <th class="fw-semibold py-2">Rx</th>
+                    <th class="fw-semibold py-2">Assigned To</th>
                     <th class="fw-semibold py-2">Prescribed By</th>
                     <th class="fw-semibold py-2">Date</th>
                     <th class="fw-semibold py-2">Status</th>
@@ -58,6 +69,23 @@
                     <tr>
                         <td class="fw-medium text-dark py-2">@(rx.Patient != null ? $"{rx.Patient.FirstName} {rx.Patient.LastName}" : "—")</td>
                         <td class="small text-secondary py-2 text-truncate" style="max-width: 180px;" title="@rx.RX">@rx.RX</td>
+                        <td class="small py-2">
+                            @if (rx.AssignedToStaff != null)
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    @rx.AssignedToStaff.FirstName @rx.AssignedToStaff.LastName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25">
+                                    Unassigned
+                                </span>
+                            }
+                            <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="Prescription" asp-route-taskId="@rx.PrescriptionID" class="text-secondary ms-1" title="Reassign">
+                                <i class="fa-solid fa-user-pen" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </td>
                         <td class="small text-muted py-2">@(rx.PrescribedBy != null ? $"{rx.PrescribedBy.FirstName} {rx.PrescribedBy.LastName}" : "—")</td>
                         <td class="small text-muted py-2">@rx.TimeDate.ToString("yyyy-MM-dd")</td>
                         <td class="py-2">

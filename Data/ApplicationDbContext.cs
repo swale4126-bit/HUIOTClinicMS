@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using HUIOTClinicMS.Models;
+using HUIOTClinicMS.Models.Interfaces;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,9 +8,33 @@ namespace HUIOTClinicMS.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor)
             : base(options)
         {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            foreach (var entry in ChangeTracker.Entries<IAuditable>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.CreatedBy = userId;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedBy = userId;
+                }
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
 
         public DbSet<Department> Departments { get; set; }
@@ -26,12 +52,99 @@ namespace HUIOTClinicMS.Data
         public DbSet<ServicePoint> ServicePoints { get; set; }
         public DbSet<Queue> Queues { get; set; }
         public DbSet<ServiceLog> ServiceLogs { get; set; }
-      
-
+        
+        public DbSet<ClinicalEncounter> ClinicalEncounters { get; set; }
+        public DbSet<TriageAssessment> TriageAssessments { get; set; }
+        public DbSet<ReferralRecord> ReferralRecords { get; set; }
+        public DbSet<TaskAssignmentHistory> TaskAssignmentHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Fix decimal warning for Medication Amount
+            modelBuilder.Entity<Medication>()
+                .Property(m => m.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            // Fix multiple cascade paths for LabRequest -> Patient
+            modelBuilder.Entity<LabRequest>()
+                .HasOne(l => l.Patient)
+                .WithMany()
+                .HasForeignKey(l => l.PatientID)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<LabRequest>()
+                .HasOne(l => l.RequestedBy)
+                .WithMany()
+                .HasForeignKey(l => l.RequestedByID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MedicalRecord>()
+                .HasOne(m => m.CreatedByStaff)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<LabResult>()
+                .HasOne(l => l.ResultPerformedBy)
+                .WithMany()
+                .HasForeignKey(l => l.ResultPerformedByID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prescription>()
+                .HasOne(p => p.PrescribedBy)
+                .WithMany()
+                .HasForeignKey(p => p.PrescribedByID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prescription>()
+                .HasOne(p => p.LabResult)
+                .WithMany()
+                .HasForeignKey(p => p.LabResultID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Medication>()
+                .HasOne(m => m.Pharmacist)
+                .WithMany()
+                .HasForeignKey(m => m.PharmacistID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClinicalEncounter>()
+                .HasOne(e => e.AssignedToStaff)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToStaffID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<LabRequest>()
+                .HasOne(l => l.AssignedToStaff)
+                .WithMany()
+                .HasForeignKey(l => l.AssignedToStaffID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prescription>()
+                .HasOne(p => p.AssignedToStaff)
+                .WithMany()
+                .HasForeignKey(p => p.AssignedToStaffID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskAssignmentHistory>()
+                .HasOne(t => t.AssignedFromStaff)
+                .WithMany()
+                .HasForeignKey(t => t.AssignedFromStaffID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskAssignmentHistory>()
+                .HasOne(t => t.AssignedToStaff)
+                .WithMany()
+                .HasForeignKey(t => t.AssignedToStaffID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskAssignmentHistory>()
+                .HasOne(t => t.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(t => t.AssignedByID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<LabRequest>()
                 .HasMany(l => l.TestTypes)

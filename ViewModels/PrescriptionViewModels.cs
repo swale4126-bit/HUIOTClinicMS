@@ -1,18 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using HUIOTClinicMS.Models;
 
 namespace HUIOTClinicMS.ViewModels
 {
     public class PrescriptionCreateViewModel
     {
-        public int LabResultID { get; set; }
+        public int? LabResultID { get; set; }
+        public int? EncounterID { get; set; }
         public int PatientID { get; set; }
         public string PatientDisplayName { get; set; } = string.Empty;
-        public string TestTypeName { get; set; } = string.Empty;
-        public string LabResultSummary { get; set; } = string.Empty;
+        public string? TestTypeName { get; set; }
+        public string? LabResultSummary { get; set; }
+        public string? ClinicalNotesSummary { get; set; }
 
         [Required(ErrorMessage = "Enter the prescription details.")]
         [Display(Name = "Prescription (Rx)")]
         public string RX { get; set; } = string.Empty;
+
+        /// <summary>Staff.ID of the Pharmacist this prescription is assigned to.</summary>
+        [Required(ErrorMessage = "Please select a pharmacist to receive this prescription.")]
+        [Display(Name = "Assign to Pharmacist")]
+        public int? AssignedToStaffID { get; set; }
+
+        /// <summary>Active Pharmacist staff records for the assignment dropdown.</summary>
+        public List<Staff> AvailablePharmacists { get; set; } = new();
     }
 
     public class PrescriptionEditViewModel
@@ -48,6 +59,9 @@ namespace HUIOTClinicMS.ViewModels
 
         [Display(Name = "Quantity Dispensed")]
         public int? DispensedQuantity { get; set; }
+
+        [Display(Name = "Dispense Status")]
+        public string DispenseStatus { get; set; } = "Dispensed"; // "Dispensed" or "PartiallyDispensed"
 
         public string? Remark { get; set; }
     }

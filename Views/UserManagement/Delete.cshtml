@@ -1,12 +1,15 @@
-﻿@model HUIOTClinicMS.ViewModels.UserListItemViewModel
+@model HUIOTClinicMS.ViewModels.UserListItemViewModel
 @{
-    ViewData["Title"] = "Delete User";
+    ViewData["Title"] = "Deactivate User Account";
 }
 
-<h2 class="mb-4">Delete User</h2>
+<h2 class="mb-4">Deactivate User Account</h2>
 
 <div class="clinic-card mb-3">
-    <p class="text-danger fw-semibold">Are you sure you want to delete this account? This cannot be undone.</p>
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        <strong>Clinical Integrity Notice:</strong> In accordance with Ethiopian healthcare regulations (ES 7192:2025), user accounts are deactivated rather than deleted to ensure complete non-repudiation and preserve all historical clinical records, lab results, and prescriptions.
+    </div>
     <dl class="row mb-0">
         <dt class="col-sm-3">Name</dt>
         <dd class="col-sm-9">@Model.FullName</dd>
@@ -19,6 +22,6 @@
 
 <form asp-action="Delete" method="post">
     <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <button type="submit" class="btn btn-danger">Confirm Deactivation</button>
     <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
 </form>

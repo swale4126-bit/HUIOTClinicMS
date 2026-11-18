@@ -9,6 +9,8 @@ namespace HUIOTClinicMS.ViewModels
         public ServicePoint? SelectedServicePoint { get; set; }
 
         public Queue? CurrentServingQueue { get; set; }
+        public int? CurrentServingEncounterID { get; set; }
+        public int? CurrentServingLabRequestID { get; set; }
         public List<Queue> WaitingQueues { get; set; } = new();
         
         public int WaitingCount { get; set; }

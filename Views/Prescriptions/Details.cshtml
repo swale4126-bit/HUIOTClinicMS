@@ -39,6 +39,17 @@
         <dt class="col-sm-3">Prescribed By</dt>
         <dd class="col-sm-9">@(Model.PrescribedBy != null ? $"{Model.PrescribedBy.FirstName} {Model.PrescribedBy.LastName}" : "—")</dd>
 
+        <dt class="col-sm-3">Assigned Pharmacist</dt>
+        <dd class="col-sm-9">
+            @(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "Unassigned (General Queue)")
+            @if (Model.Status != "Dispensed")
+            {
+                <a asp-controller="TaskAssignment" asp-action="Reassign" asp-route-taskType="Prescription" asp-route-taskId="@Model.PrescriptionID" class="btn btn-outline-secondary btn-sm ms-2 py-0 px-2" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-user-pen me-1"></i>Reassign
+                </a>
+            }
+        </dd>
+
         <dt class="col-sm-3">Based On Lab Result</dt>
         <dd class="col-sm-9">@(Model.LabResult?.TestType?.TestName ?? "—") — @(Model.LabResult?.Result ?? "—")</dd>
     </dl>

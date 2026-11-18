@@ -1,4 +1,5 @@
 using HUIOTClinicMS.Models;
+using HUIOTClinicMS.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -100,20 +101,49 @@ namespace HUIOTClinicMS.Data
             {
                 context.ServicePoints.AddRange(
                     new ServicePoint { Name = "Registration Desk", Code = "REG", RoomNumber = "101" },
+                    new ServicePoint { Name = "Triage & Consultation", Code = "TRI", RoomNumber = "101B" },
                     new ServicePoint { Name = "Consultation Room 1", Code = "CON", RoomNumber = "102" },
                     new ServicePoint { Name = "Laboratory", Code = "LAB", RoomNumber = "103" },
                     new ServicePoint { Name = "Pharmacy", Code = "PHA", RoomNumber = "104" }
                 );
                 await context.SaveChangesAsync();
             }
+            else
+            {
+                var triSp = await context.ServicePoints.FirstOrDefaultAsync(s => s.Code == "TRI");
+                if (triSp == null)
+                {
+                    context.ServicePoints.Add(new ServicePoint { Name = "Triage & Consultation", Code = "TRI", RoomNumber = "101B" });
+                    await context.SaveChangesAsync();
+                }
+                else if (triSp.Name != "Triage & Consultation")
+                {
+                    triSp.Name = "Triage & Consultation";
+                    await context.SaveChangesAsync();
+                }
+
+                var conSp = await context.ServicePoints.FirstOrDefaultAsync(s => s.Code == "CON");
+                if (conSp != null && conSp.IsActive)
+                {
+                    conSp.IsActive = false;
+                    await context.SaveChangesAsync();
+                }
+            }
 
             var department = context.Departments.First();
             var dormBlock = context.DormBlocks.First();
 
-            await CreateStaffDemoUser(userManager, context, "healthofficer@hu.edu.et", "Demo@123", "HealthOfficer", "Solomon", "Girma");
-            await CreateStaffDemoUser(userManager, context, "nurse@hu.edu.et", "Demo@123", "Nurse", "Tigist", "Worku");
-            await CreateStaffDemoUser(userManager, context, "labtech@hu.edu.et", "Demo@123", "LabTechnician", "Yonas", "Abebe");
-            await CreateStaffDemoUser(userManager, context, "pharmacist@hu.edu.et", "Demo@123", "Pharmacist", "Hiwot", "Demisse");
+            // Perform staff deduplication and deactivate requested nurses (Meron Alemu, Tigist Bekele, wale solomon)
+            await CleanDuplicateStaffAndNursesAsync(context, userManager);
+
+            // Only bootstrap an initial Health Officer account if no Health Officer exists in the database
+            var existingHealthOfficers = await userManager.GetUsersInRoleAsync("HealthOfficer");
+            if (!existingHealthOfficers.Any())
+            {
+                await CreateStaffBootstrapUser(userManager, context, "healthofficer@hu.edu.et", "HealthOfficer", "Solomon", "Girma");
+            }
+
+            await BackfillLegacyEncountersAsync(context);
         }
 
         private static async Task MergeLegacyDepartmentAsync(ApplicationDbContext context, string legacyName, string canonicalName)
@@ -176,9 +206,9 @@ namespace HUIOTClinicMS.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateStaffDemoUser(
+        private static async Task CreateStaffBootstrapUser(
             UserManager<ApplicationUser> userManager, ApplicationDbContext context,
-            string email, string password, string role, string firstName, string lastName)
+            string email, string role, string firstName, string lastName)
         {
             var existingUser = await userManager.FindByEmailAsync(email);
             if (existingUser != null)
@@ -190,7 +220,7 @@ namespace HUIOTClinicMS.Data
                 return;
             }
 
-            var staff = new Staff { FirstName = firstName, LastName = lastName, Role = role };
+            var staff = new Staff { FirstName = firstName, LastName = lastName, Role = role, IsActive = true };
             context.Staffs.Add(staff);
             await context.SaveChangesAsync();
 
@@ -203,12 +233,259 @@ namespace HUIOTClinicMS.Data
                 StaffID = staff.ID
             };
 
-            var result = await userManager.CreateAsync(user, password);
+            var result = await userManager.CreateAsync(user, "Admin@123");
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(user, role);
             }
         }
 
+        private static async Task BackfillLegacyEncountersAsync(ApplicationDbContext context)
+        {
+            var unlinkedRecords = await context.MedicalRecords
+                .Where(mr => mr.EncounterID == null)
+                .ToListAsync();
+
+            if (!unlinkedRecords.Any()) return;
+
+            foreach (var mr in unlinkedRecords)
+            {
+                var recordTime = mr.DateTime != default ? mr.DateTime : (mr.CreatedAt != default ? mr.CreatedAt : DateTime.UtcNow);
+                var encounter = new ClinicalEncounter
+                {
+                    PatientID = mr.PatientID,
+                    Type = EncounterType.Routine,
+                    Status = WorkflowState.Discharged,
+                    StartTime = recordTime,
+                    EndTime = recordTime.AddMinutes(30),
+                    CreatedAt = recordTime,
+                    CreatedBy = mr.CreatedBy ?? "LegacyMigrationSystem"
+                };
+
+                context.ClinicalEncounters.Add(encounter);
+                await context.SaveChangesAsync();
+
+                mr.EncounterID = encounter.ID;
+
+                var labRequests = await context.LabRequests
+                    .Where(lr => lr.MedicalRecordID == mr.ID && lr.ClinicalEncounterID == null)
+                    .ToListAsync();
+                foreach (var lr in labRequests)
+                {
+                    lr.ClinicalEncounterID = encounter.ID;
+                }
+
+                var minTime = recordTime.AddHours(-24);
+                var maxTime = recordTime.AddHours(24);
+                var prescriptions = await context.Prescriptions
+                    .Where(p => p.PatientID == mr.PatientID && p.ClinicalEncounterID == null && p.TimeDate >= minTime && p.TimeDate <= maxTime)
+                    .ToListAsync();
+                foreach (var p in prescriptions)
+                {
+                    p.ClinicalEncounterID = encounter.ID;
+                }
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task CleanDuplicateStaffAndNursesAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        {
+            // 1. Remove/deactivate nurses requested by user: Meron Alemu, Tigist Bekele, wale solomon
+            var nursesToRemove = await context.Staffs
+                .Where(s => (s.FirstName == "Meron" && s.LastName == "Alemu")
+                         || (s.FirstName == "Tigist" && s.LastName == "Bekele")
+                         || (s.FirstName.ToLower() == "wale" && s.LastName.ToLower() == "solomon"))
+                .ToListAsync();
+
+            foreach (var n in nursesToRemove)
+            {
+                n.IsActive = false;
+                var users = await userManager.Users
+                    .Where(u => u.StaffID == n.ID || u.Email == "nurse.meron@hu.edu.et" || u.Email == "nurse.tigist@hu.edu.et")
+                    .ToListAsync();
+                foreach (var u in users)
+                {
+                    await userManager.SetLockoutEnabledAsync(u, true);
+                    await userManager.SetLockoutEndDateAsync(u, DateTimeOffset.MaxValue);
+                }
+            }
+            await context.SaveChangesAsync();
+
+            // 2. Inverted "Girma Solomon" normalization -> ensure FirstName = Solomon, LastName = Girma
+            var invertedGirmaSolomons = await context.Staffs
+                .Where(s => s.FirstName == "Girma" && s.LastName == "Solomon")
+                .ToListAsync();
+            foreach (var inv in invertedGirmaSolomons)
+            {
+                inv.FirstName = "Solomon";
+                inv.LastName = "Girma";
+            }
+            if (invertedGirmaSolomons.Any())
+            {
+                await context.SaveChangesAsync();
+            }
+
+            var invertedUsers = await userManager.Users
+                .Where(u => u.FullName == "Girma Solomon")
+                .ToListAsync();
+            foreach (var u in invertedUsers)
+            {
+                u.FullName = "Solomon Girma";
+                await userManager.UpdateAsync(u);
+            }
+
+            // 3. Deduplicate Solomon Girma (HealthOfficer) - keep the primary one, deactivate/repoint duplicate
+            var solomons = await context.Staffs
+                .Where(s => s.FirstName == "Solomon" && s.LastName == "Girma")
+                .ToListAsync();
+
+            if (solomons.Count > 1)
+            {
+                var primarySolomon = solomons.FirstOrDefault(s => context.Users.Any(u => u.StaffID == s.ID && (u.Email == "healthofficer@hu.edu.et" || u.Email == "admin@hu.edu.et")))
+                                     ?? solomons.First();
+
+                var duplicates = solomons.Where(s => s.ID != primarySolomon.ID).ToList();
+                foreach (var dup in duplicates)
+                {
+                    var encounters = await context.ClinicalEncounters.Where(e => e.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var e in encounters) e.AssignedToStaffID = primarySolomon.ID;
+
+                    var medRecords = await context.MedicalRecords.Where(m => m.CreatedByID == dup.ID).ToListAsync();
+                    foreach (var m in medRecords) m.CreatedByID = primarySolomon.ID;
+
+                    var labReqs = await context.LabRequests.Where(l => l.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var l in labReqs) l.AssignedToStaffID = primarySolomon.ID;
+
+                    var labReqsReq = await context.LabRequests.Where(l => l.RequestedByID == dup.ID).ToListAsync();
+                    foreach (var l in labReqsReq) l.RequestedByID = primarySolomon.ID;
+
+                    var rxs = await context.Prescriptions.Where(p => p.PrescribedByID == dup.ID).ToListAsync();
+                    foreach (var p in rxs) p.PrescribedByID = primarySolomon.ID;
+
+                    var rxsAssigned = await context.Prescriptions.Where(p => p.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var p in rxsAssigned) p.AssignedToStaffID = primarySolomon.ID;
+
+                    var tasksTo = await context.TaskAssignmentHistories.Where(t => t.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var t in tasksTo) t.AssignedToStaffID = primarySolomon.ID;
+
+                    var tasksFrom = await context.TaskAssignmentHistories.Where(t => t.AssignedFromStaffID == dup.ID).ToListAsync();
+                    foreach (var t in tasksFrom) t.AssignedFromStaffID = primarySolomon.ID;
+
+                    dup.IsActive = false;
+
+                    var dupUsers = await context.Users.Where(u => u.StaffID == dup.ID).ToListAsync();
+                    foreach (var u in dupUsers)
+                    {
+                        if (u.Email != "healthofficer@hu.edu.et" && u.Email != "admin@hu.edu.et")
+                        {
+                            await userManager.SetLockoutEnabledAsync(u, true);
+                            await userManager.SetLockoutEndDateAsync(u, DateTimeOffset.MaxValue);
+                        }
+                        else
+                        {
+                            u.StaffID = primarySolomon.ID;
+                        }
+                    }
+                }
+                primarySolomon.IsActive = true;
+                await context.SaveChangesAsync();
+            }
+
+            // 4. Deduplicate Tigist Worku (Nurse)
+            var tigistWorkus = await context.Staffs
+                .Where(s => s.FirstName == "Tigist" && s.LastName == "Worku")
+                .ToListAsync();
+
+            if (tigistWorkus.Count > 1)
+            {
+                var primaryTigist = tigistWorkus.FirstOrDefault(s => context.Users.Any(u => u.StaffID == s.ID && u.Email == "nurse.worku@hu.edu.et"))
+                                    ?? tigistWorkus.First();
+
+                var duplicates = tigistWorkus.Where(s => s.ID != primaryTigist.ID).ToList();
+                foreach (var dup in duplicates)
+                {
+                    var encounters = await context.ClinicalEncounters.Where(e => e.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var e in encounters) e.AssignedToStaffID = primaryTigist.ID;
+
+                    var medRecords = await context.MedicalRecords.Where(m => m.CreatedByID == dup.ID).ToListAsync();
+                    foreach (var m in medRecords) m.CreatedByID = primaryTigist.ID;
+
+                    var labReqs = await context.LabRequests.Where(l => l.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var l in labReqs) l.AssignedToStaffID = primaryTigist.ID;
+
+                    var labReqsReq = await context.LabRequests.Where(l => l.RequestedByID == dup.ID).ToListAsync();
+                    foreach (var l in labReqsReq) l.RequestedByID = primaryTigist.ID;
+
+                    var rxs = await context.Prescriptions.Where(p => p.PrescribedByID == dup.ID).ToListAsync();
+                    foreach (var p in rxs) p.PrescribedByID = primaryTigist.ID;
+
+                    var rxsAssigned = await context.Prescriptions.Where(p => p.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var p in rxsAssigned) p.AssignedToStaffID = primaryTigist.ID;
+
+                    var tasksTo = await context.TaskAssignmentHistories.Where(t => t.AssignedToStaffID == dup.ID).ToListAsync();
+                    foreach (var t in tasksTo) t.AssignedToStaffID = primaryTigist.ID;
+
+                    var tasksFrom = await context.TaskAssignmentHistories.Where(t => t.AssignedFromStaffID == dup.ID).ToListAsync();
+                    foreach (var t in tasksFrom) t.AssignedFromStaffID = primaryTigist.ID;
+
+                    dup.IsActive = false;
+
+                    var dupUsers = await context.Users.Where(u => u.StaffID == dup.ID).ToListAsync();
+                    foreach (var u in dupUsers)
+                    {
+                        if (u.Email != "nurse.worku@hu.edu.et")
+                        {
+                            await userManager.SetLockoutEnabledAsync(u, true);
+                            await userManager.SetLockoutEndDateAsync(u, DateTimeOffset.MaxValue);
+                        }
+                        else
+                        {
+                            u.StaffID = primaryTigist.ID;
+                        }
+                    }
+                }
+                primaryTigist.IsActive = true;
+                await context.SaveChangesAsync();
+            }
+
+            // 5. Ensure Sam exists as active Lab Technician and link user
+            var samStaff = await context.Staffs.FirstOrDefaultAsync(s => s.FirstName.Trim().ToLower() == "sam" || s.LastName.Trim().ToLower() == "sam");
+            if (samStaff == null)
+            {
+                samStaff = new Staff
+                {
+                    FirstName = "Sam",
+                    LastName = "",
+                    Role = "LabTechnician",
+                    IsActive = true
+                };
+                context.Staffs.Add(samStaff);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                samStaff.FirstName = "Sam";
+                samStaff.LastName = "";
+                samStaff.Role = "LabTechnician";
+                samStaff.IsActive = true;
+                await context.SaveChangesAsync();
+            }
+
+            // Link any Sam user account (e.g. Sam4126@gmail.com, sam@hu.edu.et) to Sam staff
+            var samUsers = await userManager.Users
+                .Where(u => u.Email.Contains("sam4126") || u.UserName.Contains("sam4126") || u.Email == "sam@hu.edu.et")
+                .ToListAsync();
+            foreach (var su in samUsers)
+            {
+                su.StaffID = samStaff.ID;
+                su.FullName = "Sam";
+                await userManager.UpdateAsync(su);
+                if (!await userManager.IsInRoleAsync(su, "LabTechnician"))
+                {
+                    await userManager.AddToRoleAsync(su, "LabTechnician");
+                }
+            }
+        }
     }
 }

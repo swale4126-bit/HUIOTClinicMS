@@ -4,27 +4,48 @@
     ViewData["Title"] = "Enter Lab Result";
 }
 
-<h2 class="mb-4">Enter Lab Result</h2>
+<h2 class="mb-4"><i class="fa-solid fa-vial-circle-check text-primary me-2"></i>Enter Lab Results & Handover</h2>
 
-<div class="clinic-card max-w-600">
+<div class="clinic-card max-w-600 border-0 shadow-sm">
+    @if (!string.IsNullOrEmpty(Model.PatientDisplayName))
+    {
+        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
+            <i class="fa-solid fa-user-injured fs-3 text-info me-3"></i>
+            <div>
+                <strong class="d-block text-dark">Patient: @Model.PatientDisplayName</strong>
+                @if (Model.EncounterID.HasValue)
+                {
+                    <span class="small text-muted">Active Clinical Encounter: #@Model.EncounterID.Value</span>
+                }
+            </div>
+        </div>
+    }
+
     <form asp-action="Create" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-        <div class="mb-3">
-            <label asp-for="LabRequestID" class="form-label fw-bold"></label>
-            <select asp-for="LabRequestID" class="form-select" asp-items="ViewBag.LabRequests">
-                <option value="">-- Select Patient's Lab Request --</option>
-            </select>
-            <span asp-validation-for="LabRequestID" class="text-danger small"></span>
-        </div>
+        @if (Model.LabRequestID > 0)
+        {
+            <input type="hidden" asp-for="LabRequestID" />
+        }
+        else
+        {
+            <div class="mb-3">
+                <label asp-for="LabRequestID" class="form-label fw-bold">Select Laboratory Request</label>
+                <select asp-for="LabRequestID" class="form-select" asp-items="ViewBag.LabRequests" onchange="if(this.value) window.location.href='@Url.Action("Create", "LabResults")?labRequestId=' + this.value;">
+                    <option value="">-- Select Patient's Lab Request --</option>
+                </select>
+                <span asp-validation-for="LabRequestID" class="text-danger small"></span>
+            </div>
+        }
 
         <div class="mb-4">
-            <h5 class="form-label fw-bold border-bottom pb-2 mb-3">Test Results Entry</h5>
+            <h5 class="form-label fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-microscope text-primary me-2"></i>Test Results Entry</h5>
             @if(Model.AvailableTestTypes != null && Model.AvailableTestTypes.Any())
             {
                 foreach (var test in Model.AvailableTestTypes)
                 {
-                    <div class="card mb-3 border border-secondary shadow-sm">
+                    <div class="card mb-3 border shadow-sm">
                         <div class="card-header bg-light py-2">
                             <h6 class="mb-0 fw-bold text-primary">
                                 <input type="hidden" name="SelectedTestTypeIds" value="@test.ID" />
@@ -33,12 +54,12 @@
                         </div>
                         <div class="card-body py-3">
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small">Result <span class="text-danger">*</span></label>
-                                <textarea name="Results[@test.ID]" class="form-control form-control-sm" rows="2" placeholder="Enter the detailed result here..." required></textarea>
+                                <label class="form-label fw-semibold small">Result Value / Findings <span class="text-danger">*</span></label>
+                                <textarea name="Results[@test.ID]" class="form-control form-control-sm" rows="2" placeholder="Enter findings (e.g. Normal, Positive, 120 mg/dL)..." required>@(Model.Results != null && Model.Results.ContainsKey(test.ID) ? Model.Results[test.ID] : "")</textarea>
                             </div>
                             <div>
-                                <label class="form-label fw-semibold small">Remarks (Optional)</label>
-                                <input name="Remarks[@test.ID]" class="form-control form-control-sm" placeholder="Any additional clinical remarks" />
+                                <label class="form-label fw-semibold small">Remarks / Reference (Optional)</label>
+                                <input name="Remarks[@test.ID]" class="form-control form-control-sm" placeholder="Any abnormal notes or technician remarks" value="@(Model.Remarks != null && Model.Remarks.ContainsKey(test.ID) ? Model.Remarks[test.ID] : "")" />
                             </div>
                         </div>
                     </div>
@@ -52,8 +73,36 @@
             }
         </div>
 
+        <!-- Handover Section: Dynamically populated eligible nurses -->
+        <div class="card mb-4 border border-primary border-opacity-25 bg-light bg-opacity-50 shadow-sm">
+            <div class="card-body p-3">
+                <h6 class="fw-bold text-primary mb-2">
+                    <i class="fa-solid fa-people-arrows me-2"></i>Handover to Destination Nurse
+                </h6>
+                <p class="small text-muted mb-3">
+                    Select an active duty clinician/nurse who will receive the diagnostic findings, review the results, and issue the required prescription.
+                </p>
+                <div class="mb-3">
+                    <label asp-for="ReceivingNurseStaffID" class="form-label fw-semibold small">
+                        Destination Nurse <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="ReceivingNurseStaffID" class="form-select" asp-items="Model.EligibleNurses">
+                        <option value="">-- Select Active Destination Nurse --</option>
+                    </select>
+                    <span asp-validation-for="ReceivingNurseStaffID" class="text-danger small"></span>
+                </div>
+                <div>
+                    <label asp-for="HandoverNote" class="form-label fw-semibold small">Handover / Clinical Note (Optional)</label>
+                    <input asp-for="HandoverNote" class="form-control" placeholder="E.g. Significant findings detected; patient advised to see nurse immediately for prescription." />
+                    <span asp-validation-for="HandoverNote" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary px-4">Submit Result</button>
+            <button type="submit" class="btn btn-primary px-4 shadow-sm fw-semibold">
+                <i class="fa-solid fa-paper-plane me-2"></i> Submit Results & Send to Nurse
+            </button>
             <a asp-controller="LabTechnician" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
         </div>
     </form>

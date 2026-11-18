@@ -1,49 +1,86 @@
 @page
 @model LoginModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Login - HU IoT Clinic";
 }
 
 @if (TempData["StatusMessage"] != null)
 {
-    <div class="alert alert-success small mb-3">@TempData["StatusMessage"]</div>
+    <div class="alert alert-success d-flex align-items-center gap-2 small mb-3" role="status">
+        <i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i>
+        <span>@TempData["StatusMessage"]</span>
+    </div>
 }
 
-<div class="auth-form-eyebrow">Sign In</div>
+<div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+    <img src="~/images/hu-logo.png" alt="Hawassa University" style="width: 44px; height: 44px; object-fit: contain;" />
+    <div>
+        <div class="auth-form-brand-eyebrow">HAWASSA UNIVERSITY</div>
+        <div class="auth-form-brand-title">IoT Student Clinic Portal</div>
+    </div>
+</div>
+
 <h2 class="auth-form-title">Welcome back</h2>
 <p class="auth-form-subtitle">Enter your credentials to continue.</p>
 
-<form id="account" method="post">
+<form id="account" method="post" novalidate>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
 
     <div class="mb-3">
-        <label asp-for="Input.Email" class="form-label">Email Address</label>
-        <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="Enter your email" />
-        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+        <label asp-for="Input.Email" class="form-label auth-label">Email Address</label>
+        <input asp-for="Input.Email" type="email" class="form-control auth-input" autocomplete="username" placeholder="Aman4126@gmail.com" />
+        <span asp-validation-for="Input.Email" class="text-danger small mt-1 d-block"></span>
     </div>
 
     <div class="mb-3">
-        <div class="d-flex justify-content-between">
-            <label asp-for="Input.Password" class="form-label">Password</label>
-            <a asp-page="./ForgotPassword" class="small text-decoration-none">Forgot Password?</a>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <label asp-for="Input.Password" class="form-label auth-label mb-0" for="loginPassword">Password</label>
+            <a asp-page="./ForgotPassword" class="auth-forgot-link small text-decoration-none">Forgot Password?</a>
         </div>
-        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" placeholder="Enter your password" />
-        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+        <div class="position-relative">
+            <input asp-for="Input.Password" type="password" id="loginPassword" class="form-control auth-input pe-5" autocomplete="current-password" placeholder="••••••••" />
+            <button type="button" class="btn auth-pwd-toggle position-absolute end-0 top-50 translate-middle-y me-2 p-1 border-0" id="togglePasswordBtn" aria-label="Show password" tabindex="0">
+                <i class="fa-regular fa-eye text-muted" id="togglePasswordIcon"></i>
+            </button>
+        </div>
+        <span asp-validation-for="Input.Password" class="text-danger small mt-1 d-block"></span>
     </div>
 
-    <div class="form-check mb-3">
-        <input asp-for="Input.RememberMe" class="form-check-input" />
-        <label asp-for="Input.RememberMe" class="form-check-label">Remember me</label>
+    <div class="form-check mb-4">
+        <input asp-for="Input.RememberMe" class="form-check-input" id="rememberMeCheck" />
+        <label asp-for="Input.RememberMe" class="form-check-label small user-select-none text-muted" for="rememberMeCheck">Remember me</label>
     </div>
 
-    <button type="submit" class="btn btn-primary w-100 py-2">
+    <button type="submit" class="btn btn-primary w-100 auth-btn-signin">
         <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In
     </button>
 </form>
 
-
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            const passwordInput = document.getElementById('loginPassword');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+
+            if (toggleBtn && passwordInput && toggleIcon) {
+                toggleBtn.addEventListener('click', function () {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+
+                    if (isPassword) {
+                        toggleIcon.classList.remove('fa-eye');
+                        toggleIcon.classList.add('fa-eye-slash');
+                    } else {
+                        toggleIcon.classList.remove('fa-eye-slash');
+                        toggleIcon.classList.add('fa-eye');
+                    }
+                    passwordInput.focus();
+                });
+            }
+        })();
+    </script>
 }

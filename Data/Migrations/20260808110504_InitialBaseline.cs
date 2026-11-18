@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -123,7 +123,7 @@ namespace HUIOTClinicMS.Data.Migrations
                         column: x => x.PharmacistID,
                         principalTable: "Staffs",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -177,7 +177,7 @@ namespace HUIOTClinicMS.Data.Migrations
                         column: x => x.CreatedByID,
                         principalTable: "Staffs",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -205,7 +205,7 @@ namespace HUIOTClinicMS.Data.Migrations
                         column: x => x.PrescribedByID,
                         principalTable: "Staffs",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -235,13 +235,13 @@ namespace HUIOTClinicMS.Data.Migrations
                         column: x => x.PatientID,
                         principalTable: "Patients",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_LabRequests_Staffs_RequestedByID",
                         column: x => x.RequestedByID,
                         principalTable: "Staffs",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -272,7 +272,7 @@ namespace HUIOTClinicMS.Data.Migrations
                         column: x => x.ResultPerformedByID,
                         principalTable: "Staffs",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_LabResults_TestTypes_TestTypeID",
                         column: x => x.TestTypeID,

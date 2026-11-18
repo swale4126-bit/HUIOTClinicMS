@@ -19,5 +19,18 @@ namespace HUIOTClinicMS.ViewModels
         public Dictionary<int, string> Results { get; set; } = new Dictionary<int, string>();
 
         public Dictionary<int, string> Remarks { get; set; } = new Dictionary<int, string>();
+        
+        [Required(ErrorMessage = "Please select an eligible receiving nurse to review results and prescribe.")]
+        [Display(Name = "Destination Nurse (To Review Results & Prescribe)")]
+        public int ReceivingNurseStaffID { get; set; }
+
+        [MaxLength(255, ErrorMessage = "Handover note cannot exceed 255 characters.")]
+        [Display(Name = "Clinical Handover Note (Optional)")]
+        public string? HandoverNote { get; set; }
+
+        public IEnumerable<SelectListItem>? EligibleNurses { get; set; }
+
+        public string? PatientDisplayName { get; set; }
+        public int? EncounterID { get; set; }
     }
 }

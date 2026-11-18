@@ -1,0 +1,357 @@
+@model HUIOTClinicMS.Models.ReferralRecord
+@{
+    Layout = null;
+    var patient = Model.Encounter?.Patient;
+    var triage = Model.Encounter?.TriageAssessment;
+    var medRecords = ViewBag.MedicalRecords as List<HUIOTClinicMS.Models.MedicalRecord> ?? new List<HUIOTClinicMS.Models.MedicalRecord>();
+    var labResults = ViewBag.LabResults as List<HUIOTClinicMS.Models.LabResult> ?? new List<HUIOTClinicMS.Models.LabResult>();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Referral - @(patient?.FirstName) @(patient?.LastName) - HU IoT Clinic</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            background-color: #f4f6f9;
+            color: #111827;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 24px 0;
+        }
+
+        .paper-container {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 48px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .letterhead {
+            border-bottom: 3px double #002D59;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .letterhead-logo {
+            width: 82px;
+            height: 82px;
+            object-fit: contain;
+        }
+
+        .section-header {
+            background-color: #002D59;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-top: 18px;
+            margin-bottom: 10px;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .table-custom th, .table-custom td {
+            border: 1px solid #d1d5db;
+            padding: 6px 10px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+            width: 25%;
+        }
+
+        .stat-badge {
+            background-color: #dc2626;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .digital-sig-box {
+            border: 1px dashed #059669;
+            background-color: #ecfdf5;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #065f46;
+            margin-top: 16px;
+        }
+
+        .stamp-box {
+            border: 2px dashed #9ca3af;
+            border-radius: 6px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        @@media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .paper-container {
+                box-shadow: none;
+                border: none;
+                padding: 12mm 15mm;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- No-print Action Controls -->
+    <div class="container mb-4 no-print" style="max-width: 860px;">
+        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border">
+            <div>
+                <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Clinical Encounter
+                </a>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary btn-sm px-4 fw-semibold" onclick="window.print();">
+                    <i class="fa-solid fa-print me-2"></i> Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Referral Letter Paper -->
+    <div class="paper-container">
+        
+        <!-- Letterhead with Hawassa University Logo -->
+        <div class="letterhead">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="~/images/hu-logo.png" alt="Hawassa University Logo" class="letterhead-logo" />
+                    <div>
+                        <div class="text-uppercase fw-bold text-dark" style="font-size: 16px; letter-spacing: 0.5px;">Hawassa University</div>
+                        <div class="fw-bold text-primary" style="font-size: 15px;">Institute of Technology (IoT) Student Health Clinic</div>
+                        <div class="text-muted" style="font-size: 11px;">IoT Campus Student Medical Care & Emergency Services &bull; Hawassa, Ethiopia</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="stat-badge mb-1">STAT EMERGENCY TRANSFER</div>
+                    <div class="fw-bold text-dark" style="font-size: 11px;">REF #: HU-IOT-REF-@Model.ID.ToString("D5")</div>
+                    <div class="text-muted" style="font-size: 11px;">Date: @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-3">
+            <h5 class="fw-bold text-uppercase text-decoration-underline mb-1" style="color: #002D59;">
+                Official Inter-Facility Emergency Referral & Transfer Form
+            </h5>
+            <div class="text-muted small">Issued pursuant to standard emergency medical handover protocols</div>
+        </div>
+
+        <!-- Addressed Hospital -->
+        <div class="p-2 mb-3 bg-light border rounded">
+            <div class="row">
+                <div class="col-8">
+                    <span class="text-muted small d-block">To Receiving Healthcare Facility:</span>
+                    <strong class="text-dark fs-6">@Model.DestinationFacility</strong>
+                    <div class="text-muted small">Emergency Department & Triage Desk &bull; Hawassa, Sidama Region, Ethiopia</div>
+                </div>
+                <div class="col-4 text-end">
+                    <span class="text-muted small d-block">Referring Unit:</span>
+                    <strong class="text-dark">HU IoT Clinic Emergency Desk</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Patient Demographics -->
+        <div class="section-header">1. Patient Identification & Demographics</div>
+        <table class="table-custom">
+            <tr>
+                <th>Patient Full Name:</th>
+                <td><strong>@(patient?.FirstName) @(patient?.LastName)</strong></td>
+                <th>Student ID Number:</th>
+                <td><strong class="text-primary">@(patient?.IDNumber ?? "—")</strong></td>
+            </tr>
+            <tr>
+                <th>Clinic Card Number:</th>
+                <td><strong>@(patient?.CardNumber ?? "—")</strong></td>
+                <th>Gender / Age:</th>
+                <td>@(patient?.Gender ?? "—") / @(patient != null ? (DateTime.Today.Year - patient.DateOfBirth.Year) : 0) years</td>
+            </tr>
+            <tr>
+                <th>Department / Faculty:</th>
+                <td>@(patient?.Department?.DepartmentName ?? "—")</td>
+                <th>Dorm Block / Room:</th>
+                <td>@(patient?.DormBlock?.BlockName ?? "—")</td>
+            </tr>
+            <tr>
+                <th>Contact Phone:</th>
+                <td>@(patient?.PhoneNumber ?? "—")</td>
+                <th>Encounter Ref:</th>
+                <td>Encounter #@Model.EncounterID (Started: @(Model.Encounter?.StartTime.ToString("MMM dd, yyyy HH:mm")))</td>
+            </tr>
+        </table>
+
+        <!-- 2. Recorded Vital Signs at Triage -->
+        <div class="section-header">2. Objective Vital Signs at Emergency Triage</div>
+        <table class="table-custom text-center">
+            <thead>
+                <tr>
+                    <th class="text-center">Blood Pressure</th>
+                    <th class="text-center">Heart Rate</th>
+                    <th class="text-center">Temperature</th>
+                    <th class="text-center">Weight</th>
+                    <th class="text-center">Acuity Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>@(triage?.BloodPressure ?? "—")</strong></td>
+                    <td><strong>@(triage?.HeartRate?.ToString() ?? "—") bpm</strong></td>
+                    <td><strong>@(triage?.Temperature?.ToString() ?? "—") &deg;C</strong></td>
+                    <td><strong>@(triage?.Weight?.ToString() ?? "—") kg</strong></td>
+                    <td><span class="badge bg-danger">STAT EMERGENCY</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 3. Clinical Summary, Complaints & Provisional Diagnosis -->
+        <div class="section-header">3. Clinical Evaluation, Chief Complaint & Working Diagnosis</div>
+        <table class="table-custom">
+            <tr>
+                <th>Presenting Complaints / Notes:</th>
+                <td>
+                    @if (medRecords.Any(m => !string.IsNullOrEmpty(m.ChiefComplaint)))
+                    {
+                        @string.Join("; ", medRecords.Select(m => m.ChiefComplaint).Distinct())
+                    }
+                    else
+                    {
+                        <text>Acute emergency presentation requiring tertiary evaluation.</text>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <th>Provisional Diagnosis:</th>
+                <td>
+                    @{
+                        var diagnoses = medRecords.Where(m => !string.IsNullOrEmpty(m.Diagnosis)).Select(m => m.Diagnosis).Distinct().ToList();
+                    }
+                    @if (diagnoses.Any())
+                    {
+                        <strong class="text-danger">@string.Join("; ", diagnoses)</strong>
+                    }
+                    else
+                    {
+                        <strong class="text-danger">Emergency Diagnostic Evaluation (Acute Exacerbation)</strong>
+                    }
+                </td>
+            </tr>
+            @if (labResults.Any())
+            {
+                <tr>
+                    <th>Diagnostic Lab Findings:</th>
+                    <td>
+                        @foreach (var lr in labResults)
+                        {
+                            <div>&bull; <strong>@(lr.TestType?.TestName ?? "Test"):</strong> @lr.Result @(string.IsNullOrEmpty(lr.Remark) ? "" : $"({lr.Remark})")</div>
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+
+        <!-- 4. Reason for Transfer & Emergency Pre-Transfer Care -->
+        <div class="section-header">4. Clinical Justification for Referral & Interventions Provided</div>
+        <table class="table-custom">
+            <tr>
+                <th>Reason for Transfer:</th>
+                <td>
+                    <strong>@Model.ReasonForTransfer</strong>
+                </td>
+            </tr>
+            <tr>
+                <th>Summary & Pre-Transfer Care:</th>
+                <td>
+                    @(string.IsNullOrEmpty(Model.ClinicalSummary) ? "Emergency stabilization measures provided at IoT clinic prior to ambulance dispatch." : Model.ClinicalSummary)
+                </td>
+            </tr>
+            <tr>
+                <th>Transfer Personnel:</th>
+                <td>@(string.IsNullOrEmpty(Model.TransferredBy) ? "Emergency medical transport" : Model.TransferredBy)</td>
+            </tr>
+        </table>
+
+        <!-- Electronic Signature & Attestation -->
+        <div class="digital-sig-box">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+                <div>
+                    <strong>Electronic Attestation & Signature Verification:</strong>
+                    <div>This emergency referral was officially prepared, reviewed, and digitally signed in the HU IoT Student Clinic Management System by <strong>@(Model.TransferredBy ?? Model.CreatedBy ?? "Attending Clinician")</strong> on <strong>@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</strong>.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official Sign-off and Stamp Area -->
+        <div class="row mt-4 pt-2">
+            <div class="col-6">
+                <div class="stamp-box p-2">
+                    <div class="text-center">
+                        <i class="fa-solid fa-stamp fa-2x mb-1 text-muted"></i>
+                        <div>HU IoT Student Clinic Official Rubber Stamp</div>
+                    </div>
+                </div>
+                <div class="mt-2 text-center small text-muted">
+                    Referring Clinician Signature: ___________________________
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stamp-box p-2">
+                    <div class="text-center">
+                        <i class="fa-solid fa-hospital-user fa-2x mb-1 text-muted"></i>
+                        <div>HUCSH Receiving Triage Acknowledgment</div>
+                    </div>
+                </div>
+                <div class="mt-2 text-center small text-muted">
+                    Receiving Doctor Signature & Time: _______________________
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-muted mt-4 pt-2 border-top" style="font-size: 10px;">
+            Hawassa University Institute of Technology (IoT) Student Health Clinic &bull; System-Generated Clinical Document &bull; Valid for Inter-facility Transport to HUCSH
+        </div>
+
+    </div>
+
+</body>
+</html>

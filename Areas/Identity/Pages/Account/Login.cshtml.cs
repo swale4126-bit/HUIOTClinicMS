@@ -73,9 +73,17 @@ public class LoginModel : PageModel
 
         if (ModelState.IsValid)
         {
-            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
             {
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+                if (user != null && user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
+                {
+                    await _signInManager.SignOutAsync();
+                    ModelState.AddModelError(string.Empty, "This account has been deactivated. Please contact the clinic Health Officer.");
+                    return Page();
+                }
+
                 _logger.LogInformation("User logged in.");
 
                 // If the caller had a specific deep link (e.g. was bounced here from a
@@ -83,7 +91,6 @@ public class LoginModel : PageModel
                 // send the user to their own role's dashboard instead of a fixed page.
                 if (string.IsNullOrEmpty(returnUrl) || returnUrl == rootUrl || returnUrl == "/")
                 {
-                    var user = await _userManager.FindByEmailAsync(Input.Email);
                     var redirectUrl = await GetRoleBasedRedirectUrlAsync(user);
                     return LocalRedirect(redirectUrl);
                 }
@@ -96,8 +103,9 @@ public class LoginModel : PageModel
             }
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out.");
-                return RedirectToPage("./Lockout");
+                _logger.LogWarning("User account locked out / deactivated.");
+                ModelState.AddModelError(string.Empty, "This account has been deactivated. Please contact the clinic Health Officer.");
+                return Page();
             }
             else
             {

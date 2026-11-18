@@ -14,7 +14,7 @@ namespace HUIOTClinicMS.Services
             _configuration = configuration;
         }
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             _logger.LogInformation("Sending email to {Email} with subject {Subject}", email, subject);
             
@@ -26,25 +26,35 @@ namespace HUIOTClinicMS.Services
             if (string.IsNullOrEmpty(smtpServer) || string.IsNullOrEmpty(senderEmail))
             {
                 _logger.LogWarning("SMTP Settings are not configured. Email will not be sent.");
-                return Task.CompletedTask;
+                return;
             }
 
-            var client = new System.Net.Mail.SmtpClient(smtpServer, port)
+            try
             {
-                Credentials = new System.Net.NetworkCredential(senderEmail, password),
-                EnableSsl = true
-            };
-            
-            var mailMessage = new System.Net.Mail.MailMessage
-            {
-                From = new System.Net.Mail.MailAddress(senderEmail, "HU IoT Clinic"),
-                Subject = subject,
-                Body = htmlMessage,
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(email);
+                using var client = new System.Net.Mail.SmtpClient(smtpServer, port)
+                {
+                    Credentials = new System.Net.NetworkCredential(senderEmail, password),
+                    EnableSsl = true,
+                    Timeout = 8000
+                };
+                
+                using var mailMessage = new System.Net.Mail.MailMessage
+                {
+                    From = new System.Net.Mail.MailAddress(senderEmail, "HU IoT Clinic"),
+                    Subject = subject,
+                    Body = htmlMessage,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(email);
 
-            return client.SendMailAsync(mailMessage);
+                await client.SendMailAsync(mailMessage);
+                _logger.LogInformation("Email sent successfully to {Email}.", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to {Email} via SMTP ({SmtpServer}:{Port})", email, smtpServer, port);
+                throw;
+            }
         }
     }
 }

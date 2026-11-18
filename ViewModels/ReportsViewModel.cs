@@ -25,5 +25,8 @@ namespace HUIOTClinicMS.ViewModels
 
         public List<HUIOTClinicMS.Models.Patient> DailyPatients { get; set; } = new();
         public List<HUIOTClinicMS.Models.Patient> MonthlyPatients { get; set; } = new();
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

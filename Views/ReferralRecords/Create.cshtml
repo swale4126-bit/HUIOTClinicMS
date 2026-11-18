@@ -1,0 +1,153 @@
+@model HUIOTClinicMS.Models.ReferralRecord
+@{
+    ViewData["Title"] = "Initiate Emergency Hospital Referral & Transfer";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1 text-danger">
+            <i class="fa-solid fa-ambulance me-2"></i>Initiate Emergency Referral & Inter-Facility Transfer
+        </h3>
+        <p class="text-muted small mb-0">Prepare official transfer documentation to Hawassa Comprehensive Specialized Hospital (HUCSH).</p>
+    </div>
+    <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Encounter
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-danger text-white py-3">
+                <strong class="fs-6"><i class="fa-solid fa-file-medical me-2"></i>Official Referral Documentation & Clinician Sign-Off</strong>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-warning py-2 mb-3 small d-flex align-items-center">
+                    <i class="fa-solid fa-triangle-exclamation fs-5 me-2 text-warning"></i>
+                    <div>
+                        Confirming this referral will mark the patient as <strong>Transferred</strong> and generate an official printable referral paper with the Hawassa University logo to hand to the patient/ambulance.
+                    </div>
+                </div>
+
+                <form asp-action="Create" method="post">
+                    <input type="hidden" asp-for="EncounterID" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="DestinationFacility" class="form-label fw-bold">Destination Facility <span class="text-danger">*</span></label>
+                        <input asp-for="DestinationFacility" class="form-control" value="Hawassa Comprehensive Specialized Hospital (HUCSH)" required />
+                        <span class="form-text text-muted small">Tertiary university referral hospital receiving the patient.</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ReasonForTransfer" class="form-label fw-bold">Reason for Referral / Transfer <span class="text-danger">*</span></label>
+                        <textarea asp-for="ReasonForTransfer" class="form-control" rows="2" placeholder="e.g. Acute severe condition exceeds clinic capacity. Requires emergency specialist evaluation, advanced diagnostic workup, and intensive tertiary care." required></textarea>
+                        <span asp-validation-for="ReasonForTransfer" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ClinicalSummary" class="form-label fw-bold">Clinical Summary, Provisional Diagnosis & Pre-Transfer Treatment</label>
+                        <textarea asp-for="ClinicalSummary" class="form-control" rows="4" placeholder="Detail the patient's presenting signs/symptoms, provisional diagnosis, and emergency stabilization treatments or medications administered prior to departure..."></textarea>
+                        <span class="form-text text-muted small">Include any IV fluids, emergency meds, oxygen, or immediate nursing care provided.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TransferredBy" class="form-label fw-bold">Referring Clinician & Accompanying Personnel</label>
+                        <input asp-for="TransferredBy" class="form-control" placeholder="Clinician name, role, and accompanying nurse/paramedic if applicable" />
+                    </div>
+
+                    <div class="card bg-light border p-3 mb-4 rounded-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="digitalSignatureConsent" required checked />
+                            <label class="form-check-label fw-bold text-dark small" for="digitalSignatureConsent">
+                                <i class="fa-solid fa-signature text-primary me-1"></i> Electronic System Signature & Attestation
+                            </label>
+                            <div class="text-muted small mt-1">
+                                By submitting, I certify under my professional credentials that the clinical information provided herein is accurate and authorizes the immediate emergency transfer of this patient.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="fa-solid fa-print me-2"></i> Confirm Referral & Generate Printable PDF
+                        </button>
+                        <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient & Clinical Data Preview -->
+    <div class="col-lg-5">
+        @if (Model.Encounter?.Patient != null)
+        {
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <strong class="text-primary"><i class="fa-solid fa-user me-2"></i>Patient Demographic Summary</strong>
+                </div>
+                <div class="card-body small">
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Full Name:</span>
+                        <strong>@Model.Encounter.Patient.FirstName @Model.Encounter.Patient.LastName</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Student ID:</span>
+                        <span class="badge bg-light text-dark border">@Model.Encounter.Patient.IDNumber</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Clinic Card #:</span>
+                        <strong>@(Model.Encounter.Patient.CardNumber ?? "—")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Department:</span>
+                        <span>@(Model.Encounter.Patient.Department?.DepartmentName ?? "—")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Dorm Block:</span>
+                        <span>@(Model.Encounter.Patient.DormBlock?.BlockName ?? "—")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="text-muted">Gender / Age:</span>
+                        <span>@Model.Encounter.Patient.Gender (@((DateTime.Today.Year - Model.Encounter.Patient.DateOfBirth.Year)) yrs)</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Phone:</span>
+                        <span>@(Model.Encounter.Patient.PhoneNumber ?? "—")</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Encounter?.TriageAssessment != null)
+        {
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <strong class="text-danger"><i class="fa-solid fa-heart-pulse me-2"></i>Recorded Vital Signs at Triage</strong>
+                </div>
+                <div class="card-body small">
+                    <div class="row g-2 text-center">
+                        <div class="col-6 p-2 bg-light rounded">
+                            <span class="text-muted d-block small">Blood Pressure</span>
+                            <strong class="text-dark fs-6">@(Model.Encounter.TriageAssessment.BloodPressure ?? "—")</strong>
+                        </div>
+                        <div class="col-6 p-2 bg-light rounded">
+                            <span class="text-muted d-block small">Heart Rate</span>
+                            <strong class="text-dark fs-6">@(Model.Encounter.TriageAssessment.HeartRate?.ToString() ?? "—") bpm</strong>
+                        </div>
+                        <div class="col-6 p-2 bg-light rounded">
+                            <span class="text-muted d-block small">Temperature</span>
+                            <strong class="text-dark fs-6">@(Model.Encounter.TriageAssessment.Temperature?.ToString() ?? "—") °C</strong>
+                        </div>
+                        <div class="col-6 p-2 bg-light rounded">
+                            <span class="text-muted d-block small">Weight</span>
+                            <strong class="text-dark fs-6">@(Model.Encounter.TriageAssessment.Weight?.ToString() ?? "—") kg</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

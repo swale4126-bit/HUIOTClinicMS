@@ -1,0 +1,119 @@
+@model HUIOTClinicMS.Models.Prescription
+@{
+    ViewData["Title"] = "Prescription Confirmation";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="alert alert-success border-success shadow-sm mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="fs-1 text-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <h4 class="alert-heading mb-1 text-success fw-bold">Prescription Dispatched to Pharmacy Successfully</h4>
+                    <p class="mb-0 small text-muted">
+                        Assigned to Pharmacist <strong>@(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "On-Duty Pharmacy Team")</strong>. Patient is directed to Pharmacy for medication dispensing.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Details Card -->
+        <div class="clinic-card border-0 shadow-sm mb-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                <h5 class="mb-0 text-dark fw-bold">
+                    <i class="fa-solid fa-prescription-bottle-medical text-success me-2"></i> Prescription #@Model.PrescriptionID
+                </h5>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                    <i class="fa-solid fa-circle-check me-1"></i> Queue Completed & Dispatched
+                </span>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="bg-light rounded p-3 mb-3 border">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <span class="text-muted small d-block">Patient Name</span>
+                        <h5 class="mb-0 text-primary fw-bold">@(Model.Patient != null ? $"{Model.Patient.FirstName} {Model.Patient.LastName}" : "—")</h5>
+                        <div class="small text-muted mt-1">
+                            <span>ID: <strong>@(Model.Patient?.IDNumber ?? "—")</strong></span> &bull;
+                            <span>Card No: <strong>@(Model.Patient?.CardNumber ?? "—")</strong></span> &bull;
+                            <span>Dept: @(Model.Patient?.Department?.DepartmentName ?? "—")</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                            <i class="fa-solid fa-calendar me-1"></i> @Model.TimeDate.ToString("yyyy-MM-dd HH:mm")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dispensing & Clinician Details -->
+            <div class="row g-3 my-1 small">
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Assigned Pharmacist</span>
+                    <strong class="text-dark">
+                        <i class="fa-solid fa-mortar-pestle text-success me-1"></i>
+                        @(Model.AssignedToStaff != null ? $"{Model.AssignedToStaff.FirstName} {Model.AssignedToStaff.LastName}" : "On-Duty Pharmacist")
+                    </strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Prescribing Clinician</span>
+                    <span class="text-secondary">
+                        <i class="fa-solid fa-user-nurse text-muted me-1"></i>
+                        @(Model.PrescribedBy != null ? $"{Model.PrescribedBy.FirstName} {Model.PrescribedBy.LastName}" : "Triage Nurse")
+                    </span>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Dispensing Status</span>
+                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-2 py-1">
+                        <i class="fa-solid fa-clock me-1"></i> @Model.Status
+                    </span>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted d-block">Prescription Directives (RX)</span>
+                    <span class="text-dark fw-medium">@(string.IsNullOrWhiteSpace(Model.RX) ? "Standard Dispensing" : Model.RX)</span>
+                </div>
+
+                @if (Model.Medication != null)
+                {
+                    <div class="col-12 mt-3">
+                        <span class="text-muted d-block mb-2 fw-semibold">Prescribed Medication Item:</span>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medication</th>
+                                        <th>Prescribed Dose</th>
+                                        <th>Amount</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-medium">@Model.Medication.MedicationName</td>
+                                        <td>@(Model.Medication.PrescribedDose ?? "—")</td>
+                                        <td>@(Model.Medication.Amount?.ToString() ?? "—")</td>
+                                        <td class="text-muted">@(string.IsNullOrWhiteSpace(Model.Medication.Remark) ? "—" : Model.Medication.Remark)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Action Links: Back to Queue & Dashboard -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+            <a asp-controller="Queue" asp-action="Index" asp-route-queueType="Triage" class="btn btn-primary px-4 py-2 shadow-sm fw-semibold">
+                <i class="fa-solid fa-users-line me-2"></i> Back to Queue
+            </a>
+            <a asp-controller="Nurse" asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                <i class="fa-solid fa-table-columns me-2"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>

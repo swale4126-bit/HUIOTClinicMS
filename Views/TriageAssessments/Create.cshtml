@@ -1,0 +1,71 @@
+@model HUIOTClinicMS.Models.TriageAssessment
+@{
+    ViewData["Title"] = "Record Triage Vitals";
+}
+<h2>Record Triage Vitals</h2>
+<hr />
+
+@if (Model.Encounter?.Patient != null)
+{
+    var p = Model.Encounter.Patient;
+    var isEmergency = Model.Encounter.Type == HUIOTClinicMS.Models.Enums.EncounterType.Emergency;
+    <div class="clinic-card mb-3 p-3 bg-light border @(isEmergency ? "border-danger bg-danger bg-opacity-10" : "")">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <strong class="fs-6">@p.FirstName @p.LastName</strong> 
+                <span class="text-muted small ms-2">Card: <strong>@(p.CardNumber ?? "—")</strong> | Student ID: <strong>@p.IDNumber</strong></span>
+            </div>
+            <span class="badge @(isEmergency ? "bg-danger fs-6" : "bg-primary")">
+                Encounter #@Model.Encounter.ID (@Model.Encounter.Type)
+            </span>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <input type="hidden" asp-for="EncounterID" />
+            
+            <div class="mb-3">
+                <label asp-for="Temperature" class="form-label">Temperature (°C)</label>
+                <input asp-for="Temperature" class="form-control" type="number" step="0.1" />
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="HeartRate" class="form-label">Heart Rate (bpm)</label>
+                <input asp-for="HeartRate" class="form-control" type="number" />
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="BloodPressure" class="form-label">Blood Pressure (mmHg)</label>
+                <input asp-for="BloodPressure" class="form-control" placeholder="120/80" />
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="Weight" class="form-label">Weight (kg)</label>
+                <input asp-for="Weight" class="form-control" type="number" step="0.1" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PriorityLevel" class="form-label">Triage Priority</label>
+                <select asp-for="PriorityLevel" class="form-select fw-bold">
+                    <option value="Routine">Routine (Green)</option>
+                    <option value="Urgent">Urgent (Yellow)</option>
+                    <option value="Emergency">EMERGENCY (Red) - BYPASS QUEUE</option>
+                </select>
+                <small class="text-muted">Selecting Emergency will immediately alert clinicians and bypass the standard waiting queue.</small>
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label">Triage Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save Triage" class="btn btn-primary" />
+                <a asp-controller="ClinicalEncounters" asp-action="Details" asp-route-id="@Model.EncounterID" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

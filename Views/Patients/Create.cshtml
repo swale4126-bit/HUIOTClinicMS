@@ -14,12 +14,12 @@
         <div class="row g-3">
             <div class="col-md-6">
                 <label asp-for="FirstName" class="form-label"></label>
-                <input asp-for="FirstName" class="form-control" placeholder="First name" />
+                <input asp-for="FirstName" class="form-control" placeholder="First name (letters only)" pattern="^[a-zA-Z\s'-]+$" title="Only letters, spaces, hyphens, and apostrophes allowed (no numbers)" />
                 <span asp-validation-for="FirstName" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="LastName" class="form-label"></label>
-                <input asp-for="LastName" class="form-control" placeholder="Last name" />
+                <input asp-for="LastName" class="form-control" placeholder="Last name (letters only)" pattern="^[a-zA-Z\s'-]+$" title="Only letters, spaces, hyphens, and apostrophes allowed (no numbers)" />
                 <span asp-validation-for="LastName" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
@@ -33,18 +33,18 @@
             </div>
             <div class="col-md-6">
                 <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                <input asp-for="DateOfBirth" type="date" class="form-control" max="@DateTime.Today.AddYears(-15).ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
             </div>
 
             <div class="col-md-6">
                 <label asp-for="IDNumber" class="form-label"></label>
-                <input asp-for="IDNumber" class="form-control" placeholder="e.g. NaScR/3411/16" />
+                <input asp-for="IDNumber" class="form-control" placeholder="e.g. NaScR/1245/16" pattern="^[a-zA-Z]{1,10}/\d{1,6}/\d{2,4}$" title="Format: Letters/Number/Year (e.g., NaScR/1245/16)" />
                 <span asp-validation-for="IDNumber" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="PhoneNumber" class="form-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" placeholder="0912-345-678" />
+                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 0912345678" pattern="^(\+251|0)[79][0-9\s-]{8,12}$" title="Valid Ethiopian phone number (no letters allowed)" />
                 <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
@@ -79,12 +79,12 @@
         <div class="row g-3">
             <div class="col-md-4">
                 <label asp-for="ContactName" class="form-label"></label>
-                <input asp-for="ContactName" class="form-control" placeholder="Full name" />
+                <input asp-for="ContactName" class="form-control" placeholder="Full name (letters only)" pattern="^[a-zA-Z\s'-]+$" title="Only letters, spaces, and hyphens allowed (no numbers)" />
                 <span asp-validation-for="ContactName" class="text-danger small"></span>
             </div>
             <div class="col-md-4">
                 <label asp-for="ContactPhoneNumber" class="form-label"></label>
-                <input asp-for="ContactPhoneNumber" class="form-control" placeholder="0911-222-333" />
+                <input asp-for="ContactPhoneNumber" class="form-control" placeholder="e.g. 0911222333" pattern="^(\+251|0)[79][0-9\s-]{8,12}$" title="Valid phone number (no letters allowed)" />
                 <span asp-validation-for="ContactPhoneNumber" class="text-danger small"></span>
             </div>
             <div class="col-md-4">
@@ -103,10 +103,62 @@
         </div>
     </div>
 
+    <div class="clinic-card mb-3 border-primary border-opacity-25">
+        <strong class="d-block mb-1 text-primary">
+            <i class="fa-solid fa-people-arrows me-1"></i> Destination Nurse & Clinical Service Point
+        </strong>
+        <p class="small text-muted mb-3">
+            Select the destination nurse on duty who will receive this student for combined triage and clinical consultation.
+        </p>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label asp-for="DestinationNurseStaffID" class="form-label fw-semibold">
+                    Destination Triage Nurse <span class="text-danger">*</span>
+                </label>
+                <select asp-for="DestinationNurseStaffID" class="form-select" asp-items="Model.EligibleNurses">
+                    <option value="">-- Select Active Destination Nurse on Duty --</option>
+                </select>
+                <span asp-validation-for="DestinationNurseStaffID" class="text-danger small"></span>
+                <small class="text-muted d-block mt-1">
+                    Only active, eligible nurses currently on duty are listed.
+                </small>
+            </div>
+
+            <div class="col-md-12">
+                <div class="p-3 rounded border border-danger-subtle bg-danger-subtle bg-opacity-25">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" asp-for="IsEmergency" id="isEmergencySwitch" />
+                        <label class="form-check-label fw-bold text-danger" for="isEmergencySwitch">
+                            <i class="fa-solid fa-bolt me-1"></i> Flag as STAT Emergency Intake
+                        </label>
+                    </div>
+                    <small class="form-text text-muted d-block mt-1">
+                        Check this box if the student requires urgent clinical care. This bypasses routine queues and alerts all on-duty Health Officers immediately.
+                    </small>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <label asp-for="HandoverNote" class="form-label fw-semibold">
+                    Administrative Handover Note (Optional)
+                </label>
+                <textarea asp-for="HandoverNote" class="form-control" rows="2" placeholder="e.g. Walk-in student reporting acute fever; escorted to triage."></textarea>
+                <span asp-validation-for="HandoverNote" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border small text-muted mb-4 d-flex align-items-center">
+        <i class="fa-solid fa-circle-info text-primary me-2 fs-5"></i>
+        <div>
+            <strong>Registration & Queue Notice:</strong> Completing this form saves the student's permanent record, generates their institutional clinic card, initiates their clinical encounter, issues <strong>ONE queue token for Triage & Consultation</strong>, and notifies the destination nurse.
+        </div>
+    </div>
+
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-user-plus me-1"></i> Register Patient
+        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
+            <i class="fa-solid fa-paper-plane me-1"></i> Register & Send Handover
         </button>
-        <a asp-action="Index" class="btn btn-outline-primary">Cancel</a>
+        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
     </div>
 </form>
